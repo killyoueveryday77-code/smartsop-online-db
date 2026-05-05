@@ -29,6 +29,20 @@ Use any Node.js host that supports persistent disk storage, such as Render, Rail
 
 This repo includes `render.yaml` for Render deployment with a persistent SQLite disk.
 
+### Railway
+
+1. Create a Railway project from this GitHub repo.
+2. Add a Volume to the web service so SQLite survives redeploys.
+3. Set the Volume mount path to `/app/data`, or leave Railway's generated mount path and the app will use `RAILWAY_VOLUME_MOUNT_PATH`.
+4. Generate a Railway public domain from Settings -> Networking -> Public Networking.
+
+The repo includes `railway.json` with:
+
+- Railpack builder
+- `npm start`
+- `/api/health` health check
+- restart on failure
+
 Start command:
 
 ```bash

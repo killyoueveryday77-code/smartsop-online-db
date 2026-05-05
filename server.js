@@ -7,7 +7,10 @@ const Database = require("better-sqlite3");
 const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || "0.0.0.0";
-const dataDir = process.env.DATA_DIR || path.join(__dirname, "data");
+const dataDir =
+  process.env.DATA_DIR ||
+  process.env.RAILWAY_VOLUME_MOUNT_PATH ||
+  path.join(__dirname, "data");
 fs.mkdirSync(dataDir, { recursive: true });
 
 const db = new Database(path.join(dataDir, "smartsop.sqlite"));
@@ -99,6 +102,7 @@ function localNetworkUrls(portNumber) {
 
 app.listen(port, host, () => {
   console.log(`SmartSOP server listening on http://localhost:${port}`);
+  console.log(`SQLite data directory: ${dataDir}`);
   for (const url of localNetworkUrls(port)) {
     console.log(`LAN test URL: ${url}`);
   }

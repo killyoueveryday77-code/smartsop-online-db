@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: smartsop-online-db
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: smartsop-data
+      mountPath: /var/data
+      sizeGB: 1
+

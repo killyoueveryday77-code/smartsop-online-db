@@ -13,73 +13,73 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --c-bg:#0b1220; --c-bg2:#111a2e; --c-panel:#16213e; --c-panel2:#1c2a4a;
-    --c-line:#243355; --c-text:#e6edf7; --c-mute:#8aa0c5;
-    --c-accent:#22d3ee; --c-accent2:#10b981; --c-warn:#f59e0b; --c-danger:#ef4444;
-    --c-good:#22c55e; --c-purple:#a855f7;
+    --c-bg:#18090b; --c-bg2:#2b0f13; --c-panel:#2c1919; --c-panel2:#3a2020;
+    --c-line:#704042; --c-text:#fff7f2; --c-mute:#d9b7ad;
+    --c-accent:#d6282f; --c-accent2:#fff7f2; --c-warn:#f59e0b; --c-danger:#ef4444;
+    --c-good:#2ca66b; --c-purple:#9b1c2a;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:linear-gradient(180deg,#0a1024 0%,#0b1326 100%);color:var(--c-text);font-family:"Noto Sans TC","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-  .glass{background:rgba(22,33,62,.7);backdrop-filter:blur(8px);border:1px solid var(--c-line);border-radius:14px}
+  html,body{margin:0;background:linear-gradient(180deg,#17090b 0%,#2a0d12 100%);color:var(--c-text);font-family:"Noto Sans TC","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .glass{background:rgba(44,25,25,.78);backdrop-filter:blur(8px);border:1px solid var(--c-line);border-radius:14px}
   .panel{background:var(--c-panel);border:1px solid var(--c-line);border-radius:14px}
   .panel2{background:var(--c-panel2);border:1px solid var(--c-line);border-radius:12px}
   .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--c-line);transition:all .15s}
-  .btn-primary{background:linear-gradient(135deg,#22d3ee 0%,#0ea5e9 100%);color:#06243a;border:none}
+  .btn-primary{background:linear-gradient(135deg,#d6282f 0%,#9f111a 100%);color:#fff7f2;border:none}
   .btn-primary:hover{filter:brightness(1.1)}
   .btn-ghost{background:transparent;color:var(--c-text)}
   .btn-ghost:hover{background:var(--c-panel2)}
   .btn-warn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#1f1500;border:none}
-  .btn-success{background:linear-gradient(135deg,#10b981,#059669);color:#012a1d;border:none}
+  .btn-success{background:linear-gradient(135deg,#2ca66b,#1f7f52);color:#071d14;border:none}
   .btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none}
   .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.3px}
-  .b-ok{background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.4)}
+  .b-ok{background:rgba(44,166,107,.15);color:#bff3d2;border:1px solid rgba(44,166,107,.4)}
   .b-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.4)}
   .b-bad{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
-  .b-info{background:rgba(34,211,238,.15);color:#67e8f9;border:1px solid rgba(34,211,238,.4)}
-  .b-purple{background:rgba(168,85,247,.15);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)}
+  .b-info{background:rgba(214,40,47,.15);color:#fff7f2;border:1px solid rgba(214,40,47,.4)}
+  .b-purple{background:rgba(155,28,42,.15);color:#ffd7d7;border:1px solid rgba(155,28,42,.4)}
   .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
   .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;color:var(--c-mute);font-weight:500;transition:all .12s}
-  .nav-item:hover{background:rgba(34,211,238,.08);color:var(--c-text)}
-  .nav-item.active{background:linear-gradient(90deg,rgba(34,211,238,.18),transparent);color:#fff;border-left:3px solid var(--c-accent);padding-left:11px}
-  .pulse{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:p 1.6s infinite}
-  @keyframes p{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+  .nav-item:hover{background:rgba(214,40,47,.08);color:var(--c-text)}
+  .nav-item.active{background:linear-gradient(90deg,rgba(214,40,47,.18),transparent);color:#fff;border-left:3px solid var(--c-accent);padding-left:11px}
+  .pulse{width:8px;height:8px;border-radius:50%;background:#2ca66b;box-shadow:0 0 0 0 rgba(44,166,107,.7);animation:p 1.6s infinite}
+  @keyframes p{0%{box-shadow:0 0 0 0 rgba(44,166,107,.7)}70%{box-shadow:0 0 0 8px rgba(44,166,107,0)}100%{box-shadow:0 0 0 0 rgba(44,166,107,0)}}
   .pulse.warn{background:#f59e0b;box-shadow:0 0 0 0 rgba(245,158,11,.7);animation:pw 1.6s infinite}
   @keyframes pw{0%{box-shadow:0 0 0 0 rgba(245,158,11,.7)}70%{box-shadow:0 0 0 8px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
   .pulse.bad{background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.7);animation:pb 1s infinite}
   @keyframes pb{0%{box-shadow:0 0 0 0 rgba(239,68,68,.7)}70%{box-shadow:0 0 0 8px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
   .step-tile{position:relative;padding:14px;border-radius:12px;background:var(--c-panel2);border:1px solid var(--c-line);cursor:pointer;transition:all .15s}
   .step-tile:hover{border-color:var(--c-accent);transform:translateY(-1px)}
-  .step-tile.done{border-color:#22c55e;background:linear-gradient(135deg,rgba(34,197,94,.08),var(--c-panel2))}
-  .step-tile.active{border-color:var(--c-accent);background:linear-gradient(135deg,rgba(34,211,238,.12),var(--c-panel2));box-shadow:0 0 0 2px rgba(34,211,238,.18)}
+  .step-tile.done{border-color:#2ca66b;background:linear-gradient(135deg,rgba(44,166,107,.08),var(--c-panel2))}
+  .step-tile.active{border-color:var(--c-accent);background:linear-gradient(135deg,rgba(214,40,47,.12),var(--c-panel2));box-shadow:0 0 0 2px rgba(214,40,47,.18)}
   .step-tile.skip{border-color:#f59e0b;background:linear-gradient(135deg,rgba(245,158,11,.08),var(--c-panel2))}
   .gauge-bar{height:8px;border-radius:4px;background:var(--c-line);overflow:hidden}
   .gauge-bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--c-accent2),var(--c-accent))}
   table.tbl{width:100%;border-collapse:collapse;font-size:13px}
   table.tbl th,table.tbl td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--c-line)}
   table.tbl th{color:var(--c-mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:rgba(0,0,0,.15)}
-  table.tbl tr:hover td{background:rgba(34,211,238,.04)}
+  table.tbl tr:hover td{background:rgba(214,40,47,.04)}
   .kpi-num{font-size:28px;font-weight:800;letter-spacing:-.5px}
-  .role-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4);color:#67e8f9}
+  .role-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(214,40,47,.1);border:1px solid rgba(214,40,47,.4);color:#fff7f2}
   .scroll-y{overflow-y:auto;max-height:100%}
   ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:#243355;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#2c4068}
+  ::-webkit-scrollbar-thumb{background:#704042;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#8a4b4e}
   .check-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--c-line);cursor:pointer;user-select:none}
-  .check-card.checked{background:rgba(34,197,94,.1);border-color:#22c55e}
+  .check-card.checked{background:rgba(44,166,107,.1);border-color:#2ca66b}
   .check-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--c-mute);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
-  .check-card.checked .check-box{background:#22c55e;border-color:#22c55e;color:#012a1d}
+  .check-card.checked .check-box{background:#2ca66b;border-color:#2ca66b;color:#071d14}
   .equipment-card{padding:14px;border-radius:12px;background:linear-gradient(180deg,var(--c-panel),var(--c-panel2));border:1px solid var(--c-line);position:relative;overflow:hidden}
   .equipment-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c-accent),var(--c-accent2))}
   .equipment-card.warn::before{background:linear-gradient(90deg,#f59e0b,#ef4444)}
   .equipment-card.danger::before{background:linear-gradient(90deg,#ef4444,#7f1d1d)}
-  .ai-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;background:linear-gradient(135deg,#a855f7,#6366f1);color:#fff}
+  .ai-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;background:linear-gradient(135deg,#9b1c2a,#6f1018);color:#fff}
   .toast{position:fixed;top:20px;right:20px;z-index:9999;padding:12px 18px;border-radius:10px;background:var(--c-panel);border:1px solid var(--c-accent);box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slidein .3s ease}
   @keyframes slidein{from{transform:translateX(120%)}to{transform:translateX(0)}}
-  .login-bg{background:radial-gradient(circle at 20% 30%,rgba(34,211,238,.18) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(168,85,247,.15) 0%,transparent 50%),linear-gradient(135deg,#0a1024,#0b1326)}
+  .login-bg{background:radial-gradient(circle at 20% 30%,rgba(214,40,47,.18) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(155,28,42,.15) 0%,transparent 50%),linear-gradient(135deg,#17090b,#2a0d12)}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
   .product-thumb{aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#d4a155,#b8853a);position:relative;display:flex;align-items:center;justify-content:center;font-size:38px;border:2px solid transparent;cursor:pointer}
   .product-thumb.bad{background:linear-gradient(135deg,#7c3a1c,#4a2010)}
-  .product-thumb.bad::after{content:"";position:absolute;width:14px;height:14px;background:#ef4444;border-radius:50%;top:6px;right:6px;border:2px solid #16213e}
-  .product-thumb.good::after{content:"";position:absolute;width:14px;height:14px;background:#22c55e;border-radius:50%;top:6px;right:6px;border:2px solid #16213e}
+  .product-thumb.bad::after{content:"";position:absolute;width:14px;height:14px;background:#ef4444;border-radius:50%;top:6px;right:6px;border:2px solid #2c1919}
+  .product-thumb.good::after{content:"";position:absolute;width:14px;height:14px;background:#2ca66b;border-radius:50%;top:6px;right:6px;border:2px solid #2c1919}
   details>summary{cursor:pointer;list-style:none;outline:none}
   details>summary::-webkit-details-marker{display:none}
   details[open]>summary .arrow{transform:rotate(90deg)}
@@ -88,9 +88,9 @@
   @media(max-width:900px){.sidebar{position:fixed!important;left:-260px;top:0;height:100vh;z-index:40;transition:left .25s}.sidebar.open{left:0}.main-shift{margin-left:0!important}.mobile-menu{display:flex!important}}
   .mobile-menu{display:none}
   .train-progress{height:6px;border-radius:3px;background:var(--c-line);overflow:hidden}
-  .train-progress>span{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#10b981)}
+  .train-progress>span{display:block;height:100%;background:linear-gradient(90deg,#d6282f,#2ca66b)}
   .lang-select{appearance:auto;padding:7px 30px 7px 10px;border-radius:10px;background:var(--c-panel2);border:1px solid var(--c-line);color:var(--c-text);font:inherit;font-size:12px;font-weight:700}
-  .lang-select:focus{outline:2px solid rgba(34,211,238,.35);border-color:var(--c-accent)}
+  .lang-select:focus{outline:2px solid rgba(214,40,47,.35);border-color:var(--c-accent)}
   .context-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:10px 12px;margin-bottom:14px;align-items:stretch}
   @media(max-width:900px){.context-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:520px){.context-grid{grid-template-columns:1fr}}
@@ -172,7 +172,7 @@
 <!-- =================== MAIN APP =================== -->
 <div id="app" style="display:none;min-height:100vh">
   <!-- TOP BAR -->
-  <header style="position:sticky;top:0;z-index:20;background:rgba(11,18,32,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--c-line)">
+  <header style="position:sticky;top:0;z-index:20;background:rgba(33,17,18,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--c-line)">
     <div style="display:flex;align-items:center;gap:14px;padding:12px 20px">
       <button class="btn btn-ghost mobile-menu" onclick="document.querySelector('.sidebar').classList.toggle('open')" style="padding:6px 10px">☰</button>
       <div style="display:flex;align-items:center;gap:10px">
@@ -182,7 +182,7 @@
         </div>
       </div>
       <div style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.4);font-size:12px;color:#86efac">
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(44,166,107,.1);border:1px solid rgba(44,166,107,.4);font-size:12px;color:#bff3d2">
         <span class="pulse"></span> <span data-i18n="app.online">系統連線中</span>
       </div>
       <label title="Language" style="display:flex;align-items:center;gap:6px">
@@ -204,7 +204,7 @@
 
   <div style="display:flex">
     <!-- SIDEBAR -->
-    <aside class="sidebar" style="width:240px;flex-shrink:0;border-right:1px solid var(--c-line);background:#0c1428;min-height:calc(100vh - 60px);padding:14px">
+    <aside class="sidebar" style="width:240px;flex-shrink:0;border-right:1px solid var(--c-line);background:#241112;min-height:calc(100vh - 60px);padding:14px">
       <div style="font-size:10px;color:var(--c-mute);font-weight:700;letter-spacing:1.5px;padding:10px 14px 6px" data-i18n="nav.workspace">工作空間</div>
       <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">📊 <span data-i18n="nav.dashboard">儀表板總覽</span></div>
       <div class="nav-item" data-page="sop" onclick="navigate('sop')">📋 <span data-i18n="nav.sop">SOP 數位操作</span></div>
@@ -709,7 +709,7 @@ function navigate(page){
 function showToast(msg, kind="info"){
   const el = document.createElement("div");
   el.className = "toast";
-  el.style.borderColor = kind==="ok"?"#22c55e":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#22d3ee";
+  el.style.borderColor = kind==="ok"?"#2ca66b":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#d6282f";
   el.innerHTML = `<div style="font-size:13px;font-weight:600">${msg}</div>`;
   document.getElementById("toastZone").appendChild(el);
   setTimeout(()=>el.remove(), 3000);
@@ -823,7 +823,7 @@ function renderDashboard(){
     data:{
       labels:["00","02","04","06","08","10","12","14","16","18","20","22"],
       datasets:[
-        {label:localText("步驟合規","Compliance","Tuân thủ bước"), data:[97,98,98,97,99,98,97,98,99,99,98,98], borderColor:"#22d3ee", backgroundColor:"rgba(34,211,238,.1)", tension:.4, fill:true},
+        {label:localText("步驟合規","Compliance","Tuân thủ bước"), data:[97,98,98,97,99,98,97,98,99,99,98,98], borderColor:"#d6282f", backgroundColor:"rgba(214,40,47,.1)", tension:.4, fill:true},
         {label:localText("參數異常","Anomaly","Bất thường thông số"),     data:[1,0,0,1,2,1,3,2,1,1,0,1], borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.1)", tension:.4, fill:true},
         {label:localText("視覺不良","Visual NG","Lỗi thị giác"),   data:[2,3,2,4,3,2,5,3,2,2,1,2], borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.1)", tension:.4, fill:true},
       ]
@@ -837,14 +837,14 @@ function renderDashboard(){
     data:{
       labels:["4/28","4/29","4/30","5/1","5/2","5/3","5/4"],
       datasets:[
-        {type:"bar", label:localText("良率 %","Yield %","Tỷ lệ đạt %"), data:[92.1,93.4,94.0,93.8,94.5,94.2,94.8], backgroundColor:"rgba(16,185,129,.6)", borderRadius:6, yAxisID:"y"},
-        {type:"line", label:localText("合規 %","Compliance %","Tuân thủ %"), data:[97.1,97.5,97.8,98.0,98.1,98.0,98.3], borderColor:"#22d3ee", backgroundColor:"#22d3ee", tension:.3, yAxisID:"y1"},
+        {type:"bar", label:localText("良率 %","Yield %","Tỷ lệ đạt %"), data:[92.1,93.4,94.0,93.8,94.5,94.2,94.8], backgroundColor:"rgba(44,166,107,.6)", borderRadius:6, yAxisID:"y"},
+        {type:"line", label:localText("合規 %","Compliance %","Tuân thủ %"), data:[97.1,97.5,97.8,98.0,98.1,98.0,98.3], borderColor:"#d6282f", backgroundColor:"#d6282f", tension:.3, yAxisID:"y1"},
       ]
     },
     options:{...chartOpts(), scales:{
-      y:{position:"left", min:88, max:100, ticks:{color:"#8aa0c5"}, grid:{color:"rgba(255,255,255,.05)"}},
-      y1:{position:"right", min:95, max:100, ticks:{color:"#8aa0c5"}, grid:{display:false}},
-      x:{ticks:{color:"#8aa0c5"}, grid:{display:false}}
+      y:{position:"left", min:88, max:100, ticks:{color:"#d9b7ad"}, grid:{color:"rgba(255,255,255,.05)"}},
+      y1:{position:"right", min:95, max:100, ticks:{color:"#d9b7ad"}, grid:{display:false}},
+      x:{ticks:{color:"#d9b7ad"}, grid:{display:false}}
     }}
   }));
 }
@@ -852,15 +852,15 @@ function renderDashboard(){
 function chartOpts(){
   return {
     responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{labels:{color:"#cbd5e1",boxWidth:10,font:{size:11}}}},
+    plugins:{legend:{labels:{color:"#f5dfd6",boxWidth:10,font:{size:11}}}},
     scales:{
-      y:{ticks:{color:"#8aa0c5"}, grid:{color:"rgba(255,255,255,.05)"}},
-      x:{ticks:{color:"#8aa0c5"}, grid:{display:false}}
+      y:{ticks:{color:"#d9b7ad"}, grid:{color:"rgba(255,255,255,.05)"}},
+      x:{ticks:{color:"#d9b7ad"}, grid:{display:false}}
     }
   };
 }
 function kpiCard(icon,label,val,delta,kind,pct){
-  const color = kind==="good"?"#22c55e":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#22d3ee";
+  const color = kind==="good"?"#2ca66b":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#d6282f";
   return `<div class="panel" style="padding:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:13px;color:var(--c-mute);font-weight:600">${icon} ${label}</div>
@@ -1184,8 +1184,8 @@ function renderSOPDetail(){
             </div>
           </div>
 
-          ${s.aiZh?`<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(34,211,238,.06));border:1px solid rgba(168,85,247,.4)">
-            <div style="font-size:12px;color:#d8b4fe;font-weight:700;margin-bottom:4px">🤖 ${localText("AI 即時建議","AI insight","Gợi ý AI tức thời")}</div>
+          ${s.aiZh?`<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(155,28,42,.12),rgba(214,40,47,.06));border:1px solid rgba(155,28,42,.4)">
+            <div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 ${localText("AI 即時建議","AI insight","Gợi ý AI tức thời")}</div>
             <div style="font-size:13px">${byLang(s,"ai")}</div>
           </div>`:""}
 
@@ -1242,11 +1242,11 @@ function renderSOPDetail(){
         <div class="panel" style="padding:18px">
           <div style="font-weight:700;margin-bottom:10px">✍️ ${localText("電子簽核","E-signature","Ký điện tử")}</div>
           ${sopState.signatures[i] ? `
-            <div style="padding:12px;border:1px solid #22c55e;background:rgba(34,197,94,.06);border-radius:10px">
+            <div style="padding:12px;border:1px solid #2ca66b;background:rgba(44,166,107,.06);border-radius:10px">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="badge b-ok">${t('sop.signed')}</span></div>
               <div style="font-size:13px"><b>${sopState.signatures[i].who}</b></div>
               <div style="font-size:11px;color:var(--c-mute)">${sopState.signatures[i].at}</div>
-              <div style="margin-top:8px;font-style:italic;font-size:18px;color:#67e8f9;font-family:cursive">${sopState.signatures[i].who}</div>
+              <div style="margin-top:8px;font-style:italic;font-size:18px;color:#fff7f2;font-family:cursive">${sopState.signatures[i].who}</div>
             </div>
           ` : `
             <div style="display:grid;gap:8px">
@@ -1362,7 +1362,7 @@ function renderEquipment(){
             ${e.params.map(p=>{
               const inRange = p.val>=p.min && p.val<=p.max;
               const pct = Math.min(100, Math.max(0, (p.val - p.min)/(p.max-p.min)*100));
-              const color = p.alert?'#ef4444':inRange?'#22c55e':'#f59e0b';
+              const color = p.alert?'#ef4444':inRange?'#2ca66b':'#f59e0b';
               return `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px;margin-bottom:4px">
                 <span style="color:var(--c-mute);font-weight:600">${byLang(p,"label")}</span>
                 <span style="font-weight:700;color:${color}">${p.val}${p.unit} <span style="color:var(--c-mute);font-weight:500">/ ${p.min}-${p.max}</span></span>
@@ -1395,8 +1395,8 @@ function renderEquipment(){
     window._charts.push(new Chart(ctx,{
       type:"line",
       data:{ labels:data.map((_,i)=>i), datasets:[{
-        data, borderColor: e.status==='warn'?'#f59e0b':'#22d3ee',
-        backgroundColor: e.status==='warn'?'rgba(245,158,11,.15)':'rgba(34,211,238,.12)', tension:.4, fill:true, pointRadius:0, borderWidth:1.6
+        data, borderColor: e.status==='warn'?'#f59e0b':'#d6282f',
+        backgroundColor: e.status==='warn'?'rgba(245,158,11,.15)':'rgba(214,40,47,.12)', tension:.4, fill:true, pointRadius:0, borderWidth:1.6
       }]},
       options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}}}
     }));
@@ -1409,9 +1409,9 @@ function renderEquipment(){
     type:"line",
     data:{labels, datasets:[
       {label:localText("膨化模頭溫度","Die temp","Nhiệt độ khuôn đùn"), data:labels.map((_,i)=> 84+Math.sin(i/4)*3+Math.random()*2), borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.08)", tension:.4, pointRadius:0, fill:true},
-      {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:labels.map((_,i)=> 68+Math.sin(i/5)*2+Math.random()*1), borderColor:"#22d3ee", backgroundColor:"rgba(34,211,238,.05)", tension:.4, pointRadius:0},
+      {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:labels.map((_,i)=> 68+Math.sin(i/5)*2+Math.random()*1), borderColor:"#d6282f", backgroundColor:"rgba(214,40,47,.05)", tension:.4, pointRadius:0},
       {label:localText("乾燥爐溫","Oven temp","Nhiệt độ lò sấy"), data:labels.map((_,i)=> 135+Math.sin(i/3)*4+Math.random()*2), borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.05)", tension:.4, pointRadius:0},
-      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map((_,i)=> 38+Math.sin(i/6)*1+Math.random()*0.6), borderColor:"#10b981", backgroundColor:"rgba(16,185,129,.05)", tension:.4, pointRadius:0},
+      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map((_,i)=> 38+Math.sin(i/6)*1+Math.random()*0.6), borderColor:"#2ca66b", backgroundColor:"rgba(44,166,107,.05)", tension:.4, pointRadius:0},
     ]},
     options:chartOpts()
   }));
@@ -1425,13 +1425,13 @@ function renderEquipment(){
 function renderAI(){
   const engines = [
     {id:"comp",   icon:"📋", titleZh:"步驟合規檢查",  titleEn:"Step Compliance",     descZh:"自動比對作業員實際操作與 SOP 標準步驟，偵測順序錯誤、跳過、超時。", descEn:"Compare actual operation vs SOP; detect order mismatch, skips, timeouts.",
-     stat:[{k:LANG==='zh'?"今日合規率":"Compliance",v:"98.1%",ok:true},{k:LANG==='zh'?"異常數":"Anomalies",v:"3",ok:false},{k:LANG==='zh'?"批次":"Batches",v:"12",ok:true}], color:"#22d3ee"},
+     stat:[{k:LANG==='zh'?"今日合規率":"Compliance",v:"98.1%",ok:true},{k:LANG==='zh'?"異常數":"Anomalies",v:"3",ok:false},{k:LANG==='zh'?"批次":"Batches",v:"12",ok:true}], color:"#d6282f"},
     {id:"param",  icon:"📊", titleZh:"參數異常偵測",  titleEn:"Parameter Anomaly",   descZh:"以 IoT 訊號 + 統計過程控制 (SPC) 即時偵測超界 / 漂移 / 趨勢警告。", descEn:"IoT + SPC realtime out-of-spec / drift / trend warnings.",
      stat:[{k:LANG==='zh'?"監控點":"Tags",v:"32",ok:true},{k:LANG==='zh'?"觸發":"Triggered",v:"5",ok:false},{k:LANG==='zh'?"準確率":"Accuracy",v:"99.2%",ok:true}], color:"#f59e0b"},
     {id:"vision", icon:"📷", titleZh:"影像視覺辨識",  titleEn:"Vision Recognition",  descZh:"產品外觀 / 蒸氣噴出 / PPE 配戴 / 異物 視覺判定，YOLOv8 / OCR 雙引擎。",            descEn:"Product appearance / steam / PPE / foreign matter detection.",
-     stat:[{k:LANG==='zh'?"辨識張數":"Frames",v:"38,420",ok:true},{k:LANG==='zh'?"良品率":"Good%",v:"99.1%",ok:true},{k:LANG==='zh'?"信心度":"Confidence",v:"96.4%",ok:true}], color:"#a855f7"},
+     stat:[{k:LANG==='zh'?"辨識張數":"Frames",v:"38,420",ok:true},{k:LANG==='zh'?"良品率":"Good%",v:"99.1%",ok:true},{k:LANG==='zh'?"信心度":"Confidence",v:"96.4%",ok:true}], color:"#9b1c2a"},
     {id:"yield",  icon:"📈", titleZh:"良率與品質分析",titleEn:"Yield & Quality",     descZh:"批次良率分解、不良成因 Pareto、良率預測與改善建議生成。",                                   descEn:"Yield decomposition, defect Pareto, yield forecast, improvement tips.",
-     stat:[{k:LANG==='zh'?"7 日良率":"7-d yield",v:"94.0%",ok:true},{k:LANG==='zh'?"改善建議":"Tips",v:"4",ok:true},{k:LANG==='zh'?"預測誤差":"MAE",v:"0.6%",ok:true}], color:"#10b981"},
+     stat:[{k:LANG==='zh'?"7 日良率":"7-d yield",v:"94.0%",ok:true},{k:LANG==='zh'?"改善建議":"Tips",v:"4",ok:true},{k:LANG==='zh'?"預測誤差":"MAE",v:"0.6%",ok:true}], color:"#2ca66b"},
   ];
 
   const events = LANG==='zh'?[
@@ -1472,7 +1472,7 @@ function renderAI(){
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:12px">
             ${e.stat.map(s=>`<div style="background:rgba(0,0,0,.18);padding:8px 6px;border-radius:8px;text-align:center">
               <div style="font-size:11px;color:var(--c-mute);font-weight:600">${s.k}</div>
-              <div style="font-size:14px;font-weight:800;color:${s.ok?'#86efac':'#fcd34d'}">${s.v}</div>
+              <div style="font-size:14px;font-weight:800;color:${s.ok?'#bff3d2':'#fcd34d'}">${s.v}</div>
             </div>`).join('')}
           </div>
           <button class="btn btn-ghost" style="width:100%;margin-top:12px;justify-content:center" onclick="aiRunOne('${e.id}','${LANG==='zh'?e.titleZh:e.titleEn}')">${LANG==='zh'?'執行稽核':'Run audit'}</button>
@@ -1520,8 +1520,8 @@ function renderAI(){
   window._charts.push(new Chart(ctx,{
     type:"doughnut",
     data:{ labels:[LANG==='zh'?"參數異常":"Param", LANG==='zh'?"步驟合規":"Compliance", LANG==='zh'?"視覺辨識":"Vision", LANG==='zh'?"良率分析":"Yield"],
-      datasets:[{data:[42,18,28,12], backgroundColor:["#f59e0b","#22d3ee","#a855f7","#10b981"], borderWidth:0}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#cbd5e1', boxWidth:10, font:{size:11}}}}}
+      datasets:[{data:[42,18,28,12], backgroundColor:["#f59e0b","#d6282f","#9b1c2a","#2ca66b"], borderWidth:0}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#f5dfd6', boxWidth:10, font:{size:11}}}}}
   }));
 }
 function aiRunAll(){
@@ -1551,20 +1551,20 @@ function renderQuality(){
   const defects = LANG==='zh'?[
     {n:"破損 / 缺角", v:42, c:"#ef4444"},
     {n:"蒸氣噴出 / 半熟", v:18, c:"#f59e0b"},
-    {n:"尺寸超差", v:14, c:"#a855f7"},
-    {n:"色澤不均", v:9,  c:"#22d3ee"},
+    {n:"尺寸超差", v:14, c:"#9b1c2a"},
+    {n:"色澤不均", v:9,  c:"#d6282f"},
     {n:"異物", v:2,      c:"#7f1d1d"},
   ]:LANG==='vi'?[
     {n:"Vỡ / mẻ góc", v:42, c:"#ef4444"},
     {n:"Phun hơi / chưa chín", v:18, c:"#f59e0b"},
-    {n:"Kích thước lệch chuẩn", v:14, c:"#a855f7"},
-    {n:"Màu không đều", v:9,  c:"#22d3ee"},
+    {n:"Kích thước lệch chuẩn", v:14, c:"#9b1c2a"},
+    {n:"Màu không đều", v:9,  c:"#d6282f"},
     {n:"Dị vật", v:2, c:"#7f1d1d"},
   ]:[
     {n:"Broken / chipped", v:42, c:"#ef4444"},
     {n:"Steam puff / undercook", v:18, c:"#f59e0b"},
-    {n:"Out-of-spec dimension", v:14, c:"#a855f7"},
-    {n:"Color uneven", v:9,  c:"#22d3ee"},
+    {n:"Out-of-spec dimension", v:14, c:"#9b1c2a"},
+    {n:"Color uneven", v:9,  c:"#d6282f"},
     {n:"Foreign matter", v:2, c:"#7f1d1d"},
   ];
 
@@ -1616,8 +1616,8 @@ function renderQuality(){
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px">
           ${items.map(it=>`<div class="product-thumb ${it.bad?'bad':'good'}" title="${it.n}">${it.bad?'⚠':'🌾'}</div>`).join('')}
         </div>
-        <div style="margin-top:14px;padding:12px;border-radius:10px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.3)">
-          <div style="font-size:12px;color:#d8b4fe;font-weight:700;margin-bottom:4px">🤖 ${localText('AI 視覺結論','AI vision conclusion','Kết luận thị giác AI')}</div>
+        <div style="margin-top:14px;padding:12px;border-radius:10px;background:rgba(155,28,42,.06);border:1px solid rgba(155,28,42,.3)">
+          <div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 ${localText('AI 視覺結論','AI vision conclusion','Kết luận thị giác AI')}</div>
           <div style="font-size:13px">${localText(
             '本批次良率 83.3%（低於目標 97%），主因為「蒸氣噴出/半熟」與「尺寸超差」。建議檢查切段機皮帶同步速度與膨化機溫度穩定性。',
             'Batch yield 83.3% (target 97%). Major causes: steam puff & dimension out-of-spec. Suggest checking cutter belt sync and extruder temp stability.',
@@ -1658,8 +1658,8 @@ function renderQuality(){
     type:"line",
     data:{labels:["4/28","4/29","4/30","5/1","5/2","5/3","5/4"],
       datasets:[
-        {label:localText('批次良率','Yield','Tỷ lệ đạt theo lô'), data:[92.1,93.4,94.0,93.8,94.5,94.2,83.3], borderColor:"#10b981", backgroundColor:"rgba(16,185,129,.14)", tension:.35, fill:true},
-        {label:localText('目標','Target','Mục tiêu'), data:[97,97,97,97,97,97,97], borderColor:"#22d3ee", borderDash:[6,6], pointRadius:0}
+        {label:localText('批次良率','Yield','Tỷ lệ đạt theo lô'), data:[92.1,93.4,94.0,93.8,94.5,94.2,83.3], borderColor:"#2ca66b", backgroundColor:"rgba(44,166,107,.14)", tension:.35, fill:true},
+        {label:localText('目標','Target','Mục tiêu'), data:[97,97,97,97,97,97,97], borderColor:"#d6282f", borderDash:[6,6], pointRadius:0}
       ]},
     options:chartOpts()
   }));
@@ -1871,8 +1871,8 @@ function renderAudit(){
   const days = Array.from({length:30},(_,i)=>i+1);
   window._charts.push(new Chart(ctx,{
     type:"bar",
-    data:{labels:days, datasets:[{label:LANG==='zh'?'資料完整性 %':'Completeness %', data:days.map(()=>97+Math.random()*3), backgroundColor:"#22d3ee", borderRadius:3}]},
-    options:{...chartOpts(), scales:{y:{min:90,max:100,ticks:{color:"#8aa0c5"},grid:{color:"rgba(255,255,255,.05)"}},x:{display:false}}, plugins:{legend:{display:false}}}
+    data:{labels:days, datasets:[{label:LANG==='zh'?'資料完整性 %':'Completeness %', data:days.map(()=>97+Math.random()*3), backgroundColor:"#d6282f", borderRadius:3}]},
+    options:{...chartOpts(), scales:{y:{min:90,max:100,ticks:{color:"#d9b7ad"},grid:{color:"rgba(255,255,255,.05)"}},x:{display:false}}, plugins:{legend:{display:false}}}
   }));
 }
 </script>
@@ -2203,7 +2203,7 @@ function updateEquipmentLive() {
     if (!p) return;
     const inRange = p.val>=p.min && p.val<=p.max;
     const pct = Math.min(100, Math.max(0, (p.val-p.min)/(p.max-p.min)*100));
-    const color = p.alert?'#ef4444':inRange?'#22c55e':'#f59e0b';
+    const color = p.alert?'#ef4444':inRange?'#2ca66b':'#f59e0b';
     const valEl = el.querySelector('[data-val]');
     if (valEl) { valEl.textContent = p.val + p.unit; valEl.style.color = color; }
     const bar = el.querySelector('[data-bar]');
@@ -2435,7 +2435,7 @@ function takePhoto(stepIdx) {
   canvas.width = 240; canvas.height = 240;
   const ctx = canvas.getContext('2d');
   const bg = ctx.createLinearGradient(0,0,240,240);
-  bg.addColorStop(0,'#1c2a4a'); bg.addColorStop(1,'#0c1428');
+  bg.addColorStop(0,'#3a2020'); bg.addColorStop(1,'#241112');
   ctx.fillStyle = bg; ctx.fillRect(0,0,240,240);
   ctx.fillStyle = '#3a4458'; ctx.fillRect(0,140,240,60);
   for (let x=0;x<240;x+=20){ ctx.fillStyle = '#28324a'; ctx.fillRect(x,140,2,60); }
@@ -2453,9 +2453,9 @@ function takePhoto(stepIdx) {
     ctx.beginPath(); ctx.moveTo(140,128); ctx.lineTo(155,150); ctx.stroke();
   }
   ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,210,240,30);
-  ctx.fillStyle='#cbd5e1'; ctx.font='bold 11px sans-serif';
+  ctx.fillStyle='#f5dfd6'; ctx.font='bold 11px sans-serif';
   ctx.fillText('STEP '+(stepIdx+1)+' · '+nowFull(), 8, 228);
-  ctx.fillStyle = isBad ? '#ef4444' : '#22c55e';
+  ctx.fillStyle = isBad ? '#ef4444' : '#2ca66b';
   ctx.font='bold 14px sans-serif';
   ctx.fillText(isBad?'AI: NG':'AI: OK', 178, 28);
   const url = canvas.toDataURL('image/png');
@@ -2570,7 +2570,7 @@ function viewHistory(eqId) {
     new Chart(ctx, {type:'line', data:{labels:labels, datasets:[{
       label: localText('主要參數','Primary','Thông số chính'),
       data: labels.map(function(_,i){return baseline + Math.sin(i/4)*range + (Math.random()-0.5)*range*0.6}),
-      borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,.12)', tension:.4, fill:true, pointRadius:0
+      borderColor:'#d6282f', backgroundColor:'rgba(214,40,47,.12)', tension:.4, fill:true, pointRadius:0
     }]}, options: chartOpts()});
   }, 50);
 }
@@ -2637,7 +2637,7 @@ function exportAuditPDF(batchId) {
   w.document.write(
     '<!doctype html><html><head><meta charset="utf-8"><title>Batch Report '+batchId+'</title>' +
     '<style>body{font-family:"Noto Sans TC","Helvetica",sans-serif;padding:30px;color:#1a1a1a;line-height:1.5}' +
-    'h1{margin:0 0 4px;font-size:22px}h2{margin-top:24px;font-size:15px;border-bottom:2px solid #0ea5e9;padding-bottom:4px}' +
+    'h1{margin:0 0 4px;font-size:22px}h2{margin-top:24px;font-size:15px;border-bottom:2px solid #9f111a;padding-bottom:4px}' +
     'table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}th,td{border:1px solid #ccc;padding:7px 9px;text-align:left}' +
     'th{background:#f1f5f9}.meta{display:flex;justify-content:space-between;color:#555;font-size:12px;margin-top:6px;flex-wrap:wrap;gap:10px}' +
     '.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}' +
@@ -2872,8 +2872,8 @@ window.renderSOPDetail = function() {
   const photoHtml = photos.length === 0
     ? '<div style="aspect-ratio:1;border-radius:10px;background:var(--c-panel2);border:2px dashed var(--c-line);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--c-mute);font-size:28px;grid-column:span 2">📷<div style="font-size:11px;margin-top:4px">'+localText('尚無照片','No photos','Chưa có ảnh')+'</div></div>'
     : photos.map(function(p,pi){
-        return '<div style="aspect-ratio:1;border-radius:10px;background-image:url(\''+p.url+'\');background-size:cover;background-position:center;cursor:pointer;border:2px solid '+(p.isBad?'#ef4444':'#22c55e')+';position:relative" onclick="viewPhoto('+i+','+pi+')">' +
-          '<div style="position:absolute;top:4px;right:4px;background:'+(p.isBad?'#ef4444':'#22c55e')+';color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px">'+(p.isBad?'NG':'OK')+'</div></div>';
+        return '<div style="aspect-ratio:1;border-radius:10px;background-image:url(\''+p.url+'\');background-size:cover;background-position:center;cursor:pointer;border:2px solid '+(p.isBad?'#ef4444':'#2ca66b')+';position:relative" onclick="viewPhoto('+i+','+pi+')">' +
+          '<div style="position:absolute;top:4px;right:4px;background:'+(p.isBad?'#ef4444':'#2ca66b')+';color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px">'+(p.isBad?'NG':'OK')+'</div></div>';
       }).join('');
 
   const html =
@@ -2888,8 +2888,8 @@ window.renderSOPDetail = function() {
             '<span class="ai-tag">AI '+localText('監督中','watching','đang giám sát')+'</span>' +
             (s.duration?'<span class="badge b-info">⏱ '+s.duration+' min</span>':'') +
           '</div></div>' +
-        (s.aiZh?'<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(34,211,238,.06));border:1px solid rgba(168,85,247,.4)">' +
-          '<div style="font-size:12px;color:#d8b4fe;font-weight:700;margin-bottom:4px">🤖 '+localText('AI 即時建議','AI insight','Gợi ý AI tức thời')+'</div>' +
+        (s.aiZh?'<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(155,28,42,.12),rgba(214,40,47,.06));border:1px solid rgba(155,28,42,.4)">' +
+          '<div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 '+localText('AI 即時建議','AI insight','Gợi ý AI tức thời')+'</div>' +
           '<div style="font-size:13px">'+byLang(s,'ai')+'</div></div>':'') +
         '<div style="margin-top:18px"><div style="font-weight:700;margin-bottom:10px">'+t('sop.checklist')+'</div>' +
           '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px">' +
@@ -2927,11 +2927,11 @@ window.renderSOPDetail = function() {
         '<div class="panel" style="padding:18px">' +
           '<div style="font-weight:700;margin-bottom:10px">✍️ '+localText('電子簽核','E-signature','Ký điện tử')+'</div>' +
           (sopState.signatures[i] ?
-            '<div style="padding:12px;border:1px solid #22c55e;background:rgba(34,197,94,.06);border-radius:10px">' +
+            '<div style="padding:12px;border:1px solid #2ca66b;background:rgba(44,166,107,.06);border-radius:10px">' +
               '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="badge b-ok">'+t('sop.signed')+'</span></div>' +
               '<div style="font-size:13px"><b>'+sopState.signatures[i].who+'</b></div>' +
               '<div style="font-size:11px;color:var(--c-mute)">'+sopState.signatures[i].at+'</div>' +
-              '<div style="margin-top:8px;font-style:italic;font-size:18px;color:#67e8f9;font-family:cursive">'+sopState.signatures[i].who+'</div></div>'
+              '<div style="margin-top:8px;font-style:italic;font-size:18px;color:#fff7f2;font-family:cursive">'+sopState.signatures[i].who+'</div></div>'
             : '<div style="display:grid;gap:8px">' +
                 '<label style="font-size:12px;color:var(--c-mute);font-weight:600">'+t('common.signed')+'</label>' +
                 '<input id="sopSignerName" value="'+_esc(signerName)+'" oninput="sopSetSignerName(this.value)" placeholder="'+localText('請輸入簽核者姓名','Enter signer name','Nhập tên người ký')+'" style="width:100%;padding:10px 12px;background:rgba(0,0,0,.25);border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px" />' +
@@ -2980,7 +2980,7 @@ window.renderEquipment = function() {
       const paramsHtml = e.params.map(function(p) {
         const inRange = p.val>=p.min && p.val<=p.max;
         const pct = Math.min(100, Math.max(0, (p.val-p.min)/(p.max-p.min)*100));
-        const color = p.alert?'#ef4444':inRange?'#22c55e':'#f59e0b';
+        const color = p.alert?'#ef4444':inRange?'#2ca66b':'#f59e0b';
         return '<div data-eqparam="'+e.id+':'+p.key+'">' +
           '<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px;margin-bottom:4px">' +
             '<span style="color:var(--c-mute);font-weight:600">'+byLang(p,'label')+'</span>' +
@@ -3012,8 +3012,8 @@ window.renderEquipment = function() {
     const ctx = document.getElementById('eqChart-'+ei).getContext('2d');
     const data = Array.from({length:24},function(_,i){return e.params[0].val + (Math.sin(i/3)+Math.random()*0.4-0.2)*(e.params[0].max*0.05)});
     window._charts.push(new Chart(ctx, {type:'line', data:{labels:data.map(function(_,i){return i}), datasets:[{
-      data:data, borderColor: e.status==='warn'?'#f59e0b':'#22d3ee',
-      backgroundColor: e.status==='warn'?'rgba(245,158,11,.15)':'rgba(34,211,238,.12)', tension:.4, fill:true, pointRadius:0, borderWidth:1.6
+      data:data, borderColor: e.status==='warn'?'#f59e0b':'#d6282f',
+      backgroundColor: e.status==='warn'?'rgba(245,158,11,.15)':'rgba(214,40,47,.12)', tension:.4, fill:true, pointRadius:0, borderWidth:1.6
     }]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}}}}));
   });
   const labels = Array.from({length:30},function(_,i){return 'T-'+(30-i)+'m'});
@@ -3021,9 +3021,9 @@ window.renderEquipment = function() {
     type:'line',
     data:{labels:labels, datasets:[
       {label:localText("膨化模頭溫度","Die temp","Nhiệt độ khuôn đùn"), data:labels.map(function(_,i){return 84+Math.sin(i/4)*3+Math.random()*2}), borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.08)", tension:.4, pointRadius:0, fill:true},
-      {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:labels.map(function(_,i){return 68+Math.sin(i/5)*2+Math.random()*1}), borderColor:"#22d3ee", backgroundColor:"rgba(34,211,238,.05)", tension:.4, pointRadius:0},
+      {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:labels.map(function(_,i){return 68+Math.sin(i/5)*2+Math.random()*1}), borderColor:"#d6282f", backgroundColor:"rgba(214,40,47,.05)", tension:.4, pointRadius:0},
       {label:localText("乾燥爐溫","Oven temp","Nhiệt độ lò sấy"), data:labels.map(function(_,i){return 135+Math.sin(i/3)*4+Math.random()*2}), borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.05)", tension:.4, pointRadius:0},
-      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map(function(_,i){return 38+Math.sin(i/6)*1+Math.random()*0.6}), borderColor:"#10b981", backgroundColor:"rgba(16,185,129,.05)", tension:.4, pointRadius:0}
+      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map(function(_,i){return 38+Math.sin(i/6)*1+Math.random()*0.6}), borderColor:"#2ca66b", backgroundColor:"rgba(44,166,107,.05)", tension:.4, pointRadius:0}
     ]}, options: chartOpts()
   }));
 };
@@ -3032,13 +3032,13 @@ window.renderEquipment = function() {
 window.renderAI = function() {
   const engines = [
     {id:"comp",icon:"📋",titleZh:"步驟合規檢查",titleEn:"Step Compliance",titleVi:"Kiểm tra tuân thủ bước",descZh:"自動比對作業員實際操作與 SOP 標準步驟。",descEn:"Compare actual ops vs SOP.",descVi:"Tự động đối chiếu thao tác thực tế với bước chuẩn SOP.",
-     stat:[{k:localText("今日合規率","Compliance","Tuân thủ hôm nay"),v:"98.1%",ok:true},{k:localText("異常數","Anomalies","Số bất thường"),v:"3",ok:false},{k:localText("批次","Batches","Lô"),v:"12",ok:true}], color:"#22d3ee"},
+     stat:[{k:localText("今日合規率","Compliance","Tuân thủ hôm nay"),v:"98.1%",ok:true},{k:localText("異常數","Anomalies","Số bất thường"),v:"3",ok:false},{k:localText("批次","Batches","Lô"),v:"12",ok:true}], color:"#d6282f"},
     {id:"param",icon:"📊",titleZh:"參數異常偵測",titleEn:"Parameter Anomaly",titleVi:"Phát hiện thông số bất thường",descZh:"以 IoT 訊號 + SPC 即時偵測超界 / 漂移。",descEn:"IoT + SPC realtime detection.",descVi:"Dùng tín hiệu IoT + SPC để phát hiện vượt giới hạn hoặc trôi thông số theo thời gian thực.",
      stat:[{k:localText("監控點","Tags","Điểm giám sát"),v:"32",ok:true},{k:localText("觸發","Triggered","Đã kích hoạt"),v:""+STATE.aiEvents.filter(function(e){return e.engEn==='Parameter Anomaly'}).length,ok:false},{k:localText("準確率","Accuracy","Độ chính xác"),v:"99.2%",ok:true}], color:"#f59e0b"},
     {id:"vision",icon:"📷",titleZh:"影像視覺辨識",titleEn:"Vision Recognition",titleVi:"Nhận diện hình ảnh",descZh:"產品外觀 / 蒸氣噴出 / PPE / 異物 視覺判定。",descEn:"Product / steam / PPE / foreign matter.",descVi:"Đánh giá hình ảnh về ngoại quan sản phẩm, phun hơi, PPE và dị vật.",
-     stat:[{k:localText("辨識張數","Frames","Khung hình"),v:"38,420",ok:true},{k:localText("良品率","Good%","Tỷ lệ hàng tốt"),v:"99.1%",ok:true},{k:localText("信心度","Confidence","Độ tin cậy"),v:"96.4%",ok:true}], color:"#a855f7"},
+     stat:[{k:localText("辨識張數","Frames","Khung hình"),v:"38,420",ok:true},{k:localText("良品率","Good%","Tỷ lệ hàng tốt"),v:"99.1%",ok:true},{k:localText("信心度","Confidence","Độ tin cậy"),v:"96.4%",ok:true}], color:"#9b1c2a"},
     {id:"yield",icon:"📈",titleZh:"良率與品質分析",titleEn:"Yield & Quality",titleVi:"Tỷ lệ đạt & chất lượng",descZh:"批次良率分解、不良 Pareto、預測。",descEn:"Yield decomposition, defect Pareto, forecast.",descVi:"Phân rã tỷ lệ đạt theo lô, Pareto lỗi và dự báo.",
-     stat:[{k:localText("7 日良率","7-d yield","Tỷ lệ đạt 7 ngày"),v:"94.0%",ok:true},{k:localText("改善建議","Tips","Gợi ý cải thiện"),v:""+STATE.aiEvents.filter(function(e){return e.engEn==='Yield & Quality'}).length,ok:true},{k:localText("預測誤差","MAE","Sai số dự báo"),v:"0.6%",ok:true}], color:"#10b981"},
+     stat:[{k:localText("7 日良率","7-d yield","Tỷ lệ đạt 7 ngày"),v:"94.0%",ok:true},{k:localText("改善建議","Tips","Gợi ý cải thiện"),v:""+STATE.aiEvents.filter(function(e){return e.engEn==='Yield & Quality'}).length,ok:true},{k:localText("預測誤差","MAE","Sai số dự báo"),v:"0.6%",ok:true}], color:"#2ca66b"},
   ];
   const html =
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:16px">' +
@@ -3056,7 +3056,7 @@ window.renderAI = function() {
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:12px">' +
         e.stat.map(function(s){return '<div style="background:rgba(0,0,0,.18);padding:8px 6px;border-radius:8px;text-align:center">' +
           '<div style="font-size:11px;color:var(--c-mute);font-weight:600">'+s.k+'</div>' +
-          '<div style="font-size:14px;font-weight:800;color:'+(s.ok?'#86efac':'#fcd34d')+'">'+s.v+'</div></div>'}).join('') +
+          '<div style="font-size:14px;font-weight:800;color:'+(s.ok?'#bff3d2':'#fcd34d')+'">'+s.v+'</div></div>'}).join('') +
         '</div>' +
         '<button class="btn btn-ghost" style="width:100%;margin-top:12px;justify-content:center" onclick="aiRunOne(\''+e.id+'\',\''+byLang(e,'title')+'\')">'+localText('執行稽核','Run audit','Chạy kiểm tra')+'</button>' +
       '</div>';
@@ -3097,8 +3097,8 @@ window.renderAI = function() {
   window._charts.push(new Chart(document.getElementById('aiDonut').getContext('2d'),{
     type:'doughnut',
     data:{labels:[localText("參數異常","Param","Thông số"), localText("步驟合規","Compliance","Tuân thủ"), localText("視覺辨識","Vision","Thị giác"), localText("良率分析","Yield","Tỷ lệ đạt")],
-      datasets:[{data:[counts.param||1,counts.comp||1,counts.vision||1,counts.yield||1], backgroundColor:["#f59e0b","#22d3ee","#a855f7","#10b981"], borderWidth:0}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#cbd5e1', boxWidth:10, font:{size:11}}}}}
+      datasets:[{data:[counts.param||1,counts.comp||1,counts.vision||1,counts.yield||1], backgroundColor:["#f59e0b","#d6282f","#9b1c2a","#2ca66b"], borderWidth:0}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#f5dfd6', boxWidth:10, font:{size:11}}}}}
   }));
 };
 
@@ -3229,8 +3229,8 @@ window.renderAudit = function() {
   const days = Array.from({length:30},function(_,i){return i+1});
   window._charts.push(new Chart(document.getElementById('auChart').getContext('2d'),{
     type:'bar',
-    data:{labels:days, datasets:[{label:localText('資料完整性 %','Completeness %','Độ đầy đủ dữ liệu %'), data:days.map(function(){return 97+Math.random()*3}), backgroundColor:'#22d3ee', borderRadius:3}]},
-    options:Object.assign({},chartOpts(),{scales:{y:{min:90,max:100,ticks:{color:'#8aa0c5'},grid:{color:'rgba(255,255,255,.05)'}},x:{display:false}}, plugins:{legend:{display:false}}})
+    data:{labels:days, datasets:[{label:localText('資料完整性 %','Completeness %','Độ đầy đủ dữ liệu %'), data:days.map(function(){return 97+Math.random()*3}), backgroundColor:'#d6282f', borderRadius:3}]},
+    options:Object.assign({},chartOpts(),{scales:{y:{min:90,max:100,ticks:{color:'#d9b7ad'},grid:{color:'rgba(255,255,255,.05)'}},x:{display:false}}, plugins:{legend:{display:false}}})
   }));
 };
 

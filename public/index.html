@@ -13,73 +13,73 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --c-bg:#18090b; --c-bg2:#2b0f13; --c-panel:#2c1919; --c-panel2:#3a2020;
-    --c-line:#704042; --c-text:#fff7f2; --c-mute:#d9b7ad;
-    --c-accent:#d6282f; --c-accent2:#fff7f2; --c-warn:#f59e0b; --c-danger:#ef4444;
-    --c-good:#2ca66b; --c-purple:#9b1c2a;
+    --c-bg:#ffffff; --c-bg2:#f7f7f7; --c-panel:#ffffff; --c-panel2:#f9f9f9;
+    --c-line:#111111; --c-text:#111111; --c-mute:#555555;
+    --c-accent:#d6282f; --c-accent2:#d6282f; --c-warn:#f59e0b; --c-danger:#ef4444;
+    --c-good:#168a4a; --c-purple:#8d1118;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:linear-gradient(180deg,#17090b 0%,#2a0d12 100%);color:var(--c-text);font-family:"Noto Sans TC","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-  .glass{background:rgba(44,25,25,.78);backdrop-filter:blur(8px);border:1px solid var(--c-line);border-radius:14px}
+  html,body{margin:0;background:#fff;color:var(--c-text);font-family:"Noto Sans TC","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .glass{background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border:1px solid var(--c-line);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.08)}
   .panel{background:var(--c-panel);border:1px solid var(--c-line);border-radius:14px}
   .panel2{background:var(--c-panel2);border:1px solid var(--c-line);border-radius:12px}
   .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--c-line);transition:all .15s}
-  .btn-primary{background:linear-gradient(135deg,#d6282f 0%,#9f111a 100%);color:#fff7f2;border:none}
+  .btn-primary{background:#d6282f;color:#fff;border:1px solid #d6282f}
   .btn-primary:hover{filter:brightness(1.1)}
-  .btn-ghost{background:transparent;color:var(--c-text)}
-  .btn-ghost:hover{background:var(--c-panel2)}
+  .btn-ghost{background:#fff;color:var(--c-text)}
+  .btn-ghost:hover{background:#fff1f1;border-color:#d6282f}
   .btn-warn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#1f1500;border:none}
-  .btn-success{background:linear-gradient(135deg,#2ca66b,#1f7f52);color:#071d14;border:none}
+  .btn-success{background:#168a4a;color:#fff;border:1px solid #168a4a}
   .btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none}
   .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.3px}
-  .b-ok{background:rgba(44,166,107,.15);color:#bff3d2;border:1px solid rgba(44,166,107,.4)}
-  .b-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.4)}
-  .b-bad{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
-  .b-info{background:rgba(214,40,47,.15);color:#fff7f2;border:1px solid rgba(214,40,47,.4)}
-  .b-purple{background:rgba(155,28,42,.15);color:#ffd7d7;border:1px solid rgba(155,28,42,.4)}
+  .b-ok{background:#eefaf3;color:#136b3a;border:1px solid #136b3a}
+  .b-warn{background:#fff7e6;color:#8a5200;border:1px solid #8a5200}
+  .b-bad{background:#fff0f0;color:#b91c1c;border:1px solid #b91c1c}
+  .b-info{background:#fff1f1;color:#d6282f;border:1px solid #d6282f}
+  .b-purple{background:#fff1f1;color:#8d1118;border:1px solid #8d1118}
   .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
   .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;color:var(--c-mute);font-weight:500;transition:all .12s}
-  .nav-item:hover{background:rgba(214,40,47,.08);color:var(--c-text)}
-  .nav-item.active{background:linear-gradient(90deg,rgba(214,40,47,.18),transparent);color:#fff;border-left:3px solid var(--c-accent);padding-left:11px}
-  .pulse{width:8px;height:8px;border-radius:50%;background:#2ca66b;box-shadow:0 0 0 0 rgba(44,166,107,.7);animation:p 1.6s infinite}
-  @keyframes p{0%{box-shadow:0 0 0 0 rgba(44,166,107,.7)}70%{box-shadow:0 0 0 8px rgba(44,166,107,0)}100%{box-shadow:0 0 0 0 rgba(44,166,107,0)}}
+  .nav-item:hover{background:#fff1f1;color:var(--c-text)}
+  .nav-item.active{background:#d6282f;color:#fff;border-left:3px solid #111;padding-left:11px}
+  .pulse{width:8px;height:8px;border-radius:50%;background:#168a4a;box-shadow:0 0 0 0 rgba(22,138,74,.7);animation:p 1.6s infinite}
+  @keyframes p{0%{box-shadow:0 0 0 0 rgba(22,138,74,.7)}70%{box-shadow:0 0 0 8px rgba(22,138,74,0)}100%{box-shadow:0 0 0 0 rgba(22,138,74,0)}}
   .pulse.warn{background:#f59e0b;box-shadow:0 0 0 0 rgba(245,158,11,.7);animation:pw 1.6s infinite}
   @keyframes pw{0%{box-shadow:0 0 0 0 rgba(245,158,11,.7)}70%{box-shadow:0 0 0 8px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
   .pulse.bad{background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.7);animation:pb 1s infinite}
   @keyframes pb{0%{box-shadow:0 0 0 0 rgba(239,68,68,.7)}70%{box-shadow:0 0 0 8px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
   .step-tile{position:relative;padding:14px;border-radius:12px;background:var(--c-panel2);border:1px solid var(--c-line);cursor:pointer;transition:all .15s}
   .step-tile:hover{border-color:var(--c-accent);transform:translateY(-1px)}
-  .step-tile.done{border-color:#2ca66b;background:linear-gradient(135deg,rgba(44,166,107,.08),var(--c-panel2))}
-  .step-tile.active{border-color:var(--c-accent);background:linear-gradient(135deg,rgba(214,40,47,.12),var(--c-panel2));box-shadow:0 0 0 2px rgba(214,40,47,.18)}
+  .step-tile.done{border-color:#168a4a;background:#f2fbf5}
+  .step-tile.active{border-color:#111;background:#fff1f1;box-shadow:0 0 0 2px rgba(214,40,47,.22)}
   .step-tile.skip{border-color:#f59e0b;background:linear-gradient(135deg,rgba(245,158,11,.08),var(--c-panel2))}
   .gauge-bar{height:8px;border-radius:4px;background:var(--c-line);overflow:hidden}
   .gauge-bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--c-accent2),var(--c-accent))}
   table.tbl{width:100%;border-collapse:collapse;font-size:13px}
   table.tbl th,table.tbl td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--c-line)}
-  table.tbl th{color:var(--c-mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:rgba(0,0,0,.15)}
-  table.tbl tr:hover td{background:rgba(214,40,47,.04)}
+  table.tbl th{color:var(--c-mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:#f2f2f2}
+  table.tbl tr:hover td{background:#fff6f6}
   .kpi-num{font-size:28px;font-weight:800;letter-spacing:-.5px}
-  .role-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(214,40,47,.1);border:1px solid rgba(214,40,47,.4);color:#fff7f2}
+  .role-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fff;border:1px solid #111;color:#111}
   .scroll-y{overflow-y:auto;max-height:100%}
   ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:#704042;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#8a4b4e}
-  .check-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--c-line);cursor:pointer;user-select:none}
-  .check-card.checked{background:rgba(44,166,107,.1);border-color:#2ca66b}
+  ::-webkit-scrollbar-thumb{background:#111;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#d6282f}
+  .check-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--c-line);cursor:pointer;user-select:none}
+  .check-card.checked{background:#f2fbf5;border-color:#168a4a}
   .check-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--c-mute);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
-  .check-card.checked .check-box{background:#2ca66b;border-color:#2ca66b;color:#071d14}
-  .equipment-card{padding:14px;border-radius:12px;background:linear-gradient(180deg,var(--c-panel),var(--c-panel2));border:1px solid var(--c-line);position:relative;overflow:hidden}
-  .equipment-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c-accent),var(--c-accent2))}
+  .check-card.checked .check-box{background:#168a4a;border-color:#168a4a;color:#fff}
+  .equipment-card{padding:14px;border-radius:12px;background:#fff;border:1px solid var(--c-line);position:relative;overflow:hidden}
+  .equipment-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:#d6282f}
   .equipment-card.warn::before{background:linear-gradient(90deg,#f59e0b,#ef4444)}
   .equipment-card.danger::before{background:linear-gradient(90deg,#ef4444,#7f1d1d)}
-  .ai-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;background:linear-gradient(135deg,#9b1c2a,#6f1018);color:#fff}
+  .ai-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;background:#d6282f;color:#fff}
   .toast{position:fixed;top:20px;right:20px;z-index:9999;padding:12px 18px;border-radius:10px;background:var(--c-panel);border:1px solid var(--c-accent);box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slidein .3s ease}
   @keyframes slidein{from{transform:translateX(120%)}to{transform:translateX(0)}}
-  .login-bg{background:radial-gradient(circle at 20% 30%,rgba(214,40,47,.18) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(155,28,42,.15) 0%,transparent 50%),linear-gradient(135deg,#17090b,#2a0d12)}
+  .login-bg{background:#fff}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
   .product-thumb{aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#d4a155,#b8853a);position:relative;display:flex;align-items:center;justify-content:center;font-size:38px;border:2px solid transparent;cursor:pointer}
   .product-thumb.bad{background:linear-gradient(135deg,#7c3a1c,#4a2010)}
-  .product-thumb.bad::after{content:"";position:absolute;width:14px;height:14px;background:#ef4444;border-radius:50%;top:6px;right:6px;border:2px solid #2c1919}
-  .product-thumb.good::after{content:"";position:absolute;width:14px;height:14px;background:#2ca66b;border-radius:50%;top:6px;right:6px;border:2px solid #2c1919}
+  .product-thumb.bad::after{content:"";position:absolute;width:14px;height:14px;background:#ef4444;border-radius:50%;top:6px;right:6px;border:2px solid #111}
+  .product-thumb.good::after{content:"";position:absolute;width:14px;height:14px;background:#168a4a;border-radius:50%;top:6px;right:6px;border:2px solid #111}
   details>summary{cursor:pointer;list-style:none;outline:none}
   details>summary::-webkit-details-marker{display:none}
   details[open]>summary .arrow{transform:rotate(90deg)}
@@ -88,7 +88,7 @@
   @media(max-width:900px){.sidebar{position:fixed!important;left:-260px;top:0;height:100vh;z-index:40;transition:left .25s}.sidebar.open{left:0}.main-shift{margin-left:0!important}.mobile-menu{display:flex!important}}
   .mobile-menu{display:none}
   .train-progress{height:6px;border-radius:3px;background:var(--c-line);overflow:hidden}
-  .train-progress>span{display:block;height:100%;background:linear-gradient(90deg,#d6282f,#2ca66b)}
+  .train-progress>span{display:block;height:100%;background:#d6282f}
   .lang-select{appearance:auto;padding:7px 30px 7px 10px;border-radius:10px;background:var(--c-panel2);border:1px solid var(--c-line);color:var(--c-text);font:inherit;font-size:12px;font-weight:700}
   .lang-select:focus{outline:2px solid rgba(214,40,47,.35);border-color:var(--c-accent)}
   .context-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:10px 12px;margin-bottom:14px;align-items:stretch}
@@ -113,12 +113,12 @@
         <div>
           <label style="display:block;font-size:12px;color:var(--c-mute);font-weight:700;margin-bottom:5px" data-i18n="login.order">製令單號</label>
           <input id="loginOrderNo" value="MO-2026050408" placeholder="請輸入製令單號"
-            style="width:100%;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid var(--c-line);color:var(--c-text);font-family:inherit;font-size:13px" />
+            style="width:100%;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--c-line);color:var(--c-text);font-family:inherit;font-size:13px" />
         </div>
         <div>
           <label style="display:block;font-size:12px;color:var(--c-mute);font-weight:700;margin-bottom:5px" data-i18n="login.shift">班別</label>
           <input id="loginShift" value="08:00-16:00" placeholder="請輸入起訖時間，例如 08:00-16:00"
-            style="width:100%;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid var(--c-line);color:var(--c-text);font-family:inherit;font-size:13px" />
+            style="width:100%;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--c-line);color:var(--c-text);font-family:inherit;font-size:13px" />
         </div>
       </div>
       <button class="btn btn-primary" onclick="loginNextStep()" style="width:100%;justify-content:center" data-i18n="login.next">創建</button>
@@ -172,7 +172,7 @@
 <!-- =================== MAIN APP =================== -->
 <div id="app" style="display:none;min-height:100vh">
   <!-- TOP BAR -->
-  <header style="position:sticky;top:0;z-index:20;background:rgba(33,17,18,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--c-line)">
+  <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--c-line)">
     <div style="display:flex;align-items:center;gap:14px;padding:12px 20px">
       <button class="btn btn-ghost mobile-menu" onclick="document.querySelector('.sidebar').classList.toggle('open')" style="padding:6px 10px">☰</button>
       <div style="display:flex;align-items:center;gap:10px">
@@ -182,7 +182,7 @@
         </div>
       </div>
       <div style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(44,166,107,.1);border:1px solid rgba(44,166,107,.4);font-size:12px;color:#bff3d2">
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#eefaf3;border:1px solid #136b3a;font-size:12px;color:#136b3a">
         <span class="pulse"></span> <span data-i18n="app.online">系統連線中</span>
       </div>
       <label title="Language" style="display:flex;align-items:center;gap:6px">
@@ -204,7 +204,7 @@
 
   <div style="display:flex">
     <!-- SIDEBAR -->
-    <aside class="sidebar" style="width:240px;flex-shrink:0;border-right:1px solid var(--c-line);background:#241112;min-height:calc(100vh - 60px);padding:14px">
+    <aside class="sidebar" style="width:240px;flex-shrink:0;border-right:1px solid var(--c-line);background:#fff;min-height:calc(100vh - 60px);padding:14px">
       <div style="font-size:10px;color:var(--c-mute);font-weight:700;letter-spacing:1.5px;padding:10px 14px 6px" data-i18n="nav.workspace">工作空間</div>
       <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">📊 <span data-i18n="nav.dashboard">儀表板總覽</span></div>
       <div class="nav-item" data-page="sop" onclick="navigate('sop')">📋 <span data-i18n="nav.sop">SOP 數位操作</span></div>
@@ -709,7 +709,7 @@ function navigate(page){
 function showToast(msg, kind="info"){
   const el = document.createElement("div");
   el.className = "toast";
-  el.style.borderColor = kind==="ok"?"#2ca66b":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#d6282f";
+  el.style.borderColor = kind==="ok"?"#168a4a":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#d6282f";
   el.innerHTML = `<div style="font-size:13px;font-weight:600">${msg}</div>`;
   document.getElementById("toastZone").appendChild(el);
   setTimeout(()=>el.remove(), 3000);
@@ -837,14 +837,14 @@ function renderDashboard(){
     data:{
       labels:["4/28","4/29","4/30","5/1","5/2","5/3","5/4"],
       datasets:[
-        {type:"bar", label:localText("良率 %","Yield %","Tỷ lệ đạt %"), data:[92.1,93.4,94.0,93.8,94.5,94.2,94.8], backgroundColor:"rgba(44,166,107,.6)", borderRadius:6, yAxisID:"y"},
+        {type:"bar", label:localText("良率 %","Yield %","Tỷ lệ đạt %"), data:[92.1,93.4,94.0,93.8,94.5,94.2,94.8], backgroundColor:"rgba(22,138,74,.6)", borderRadius:6, yAxisID:"y"},
         {type:"line", label:localText("合規 %","Compliance %","Tuân thủ %"), data:[97.1,97.5,97.8,98.0,98.1,98.0,98.3], borderColor:"#d6282f", backgroundColor:"#d6282f", tension:.3, yAxisID:"y1"},
       ]
     },
     options:{...chartOpts(), scales:{
-      y:{position:"left", min:88, max:100, ticks:{color:"#d9b7ad"}, grid:{color:"rgba(255,255,255,.05)"}},
-      y1:{position:"right", min:95, max:100, ticks:{color:"#d9b7ad"}, grid:{display:false}},
-      x:{ticks:{color:"#d9b7ad"}, grid:{display:false}}
+      y:{position:"left", min:88, max:100, ticks:{color:"#555555"}, grid:{color:"rgba(0,0,0,.08)"}},
+      y1:{position:"right", min:95, max:100, ticks:{color:"#555555"}, grid:{display:false}},
+      x:{ticks:{color:"#555555"}, grid:{display:false}}
     }}
   }));
 }
@@ -852,15 +852,15 @@ function renderDashboard(){
 function chartOpts(){
   return {
     responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{labels:{color:"#f5dfd6",boxWidth:10,font:{size:11}}}},
+    plugins:{legend:{labels:{color:"#111111",boxWidth:10,font:{size:11}}}},
     scales:{
-      y:{ticks:{color:"#d9b7ad"}, grid:{color:"rgba(255,255,255,.05)"}},
-      x:{ticks:{color:"#d9b7ad"}, grid:{display:false}}
+      y:{ticks:{color:"#555555"}, grid:{color:"rgba(0,0,0,.08)"}},
+      x:{ticks:{color:"#555555"}, grid:{display:false}}
     }
   };
 }
 function kpiCard(icon,label,val,delta,kind,pct){
-  const color = kind==="good"?"#2ca66b":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#d6282f";
+  const color = kind==="good"?"#168a4a":kind==="warn"?"#f59e0b":kind==="bad"?"#ef4444":"#d6282f";
   return `<div class="panel" style="padding:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:13px;color:var(--c-mute);font-weight:600">${icon} ${label}</div>
@@ -1142,7 +1142,7 @@ function renderSOP(){
               <div style="font-size:10px;color:var(--c-mute);font-weight:700">STEP ${String(i+1).padStart(2,'0')}</div>
               <div style="font-size:13px;font-weight:700;margin-top:4px;line-height:1.25">${byLang(s,"title")}</div>
               <div style="margin-top:6px;font-size:11px">
-                ${sopState.status[i]==='done'?'<span class="badge b-ok">✓</span>': sopState.status[i]==='active'?'<span class="badge b-info">●</span>': sopState.status[i]==='skipped'?'<span class="badge b-warn">⤴</span>':'<span class="badge" style="background:rgba(255,255,255,.05);color:var(--c-mute);border:1px solid var(--c-line)">○</span>'}
+                ${sopState.status[i]==='done'?'<span class="badge b-ok">✓</span>': sopState.status[i]==='active'?'<span class="badge b-info">●</span>': sopState.status[i]==='skipped'?'<span class="badge b-warn">⤴</span>':'<span class="badge" style="background:#f2f2f2;color:var(--c-mute);border:1px solid var(--c-line)">○</span>'}
                 ${s.dangerous?'<span class="badge b-bad">⚠</span>':''}
               </div>
             </div>`).join('')}
@@ -1184,7 +1184,7 @@ function renderSOPDetail(){
             </div>
           </div>
 
-          ${s.aiZh?`<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(155,28,42,.12),rgba(214,40,47,.06));border:1px solid rgba(155,28,42,.4)">
+          ${s.aiZh?`<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(214,40,47,.12),rgba(214,40,47,.06));border:1px solid rgba(214,40,47,.4)">
             <div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 ${localText("AI 即時建議","AI insight","Gợi ý AI tức thời")}</div>
             <div style="font-size:13px">${byLang(s,"ai")}</div>
           </div>`:""}
@@ -1211,7 +1211,7 @@ function renderSOPDetail(){
           <div style="margin-top:18px">
             <div style="font-weight:700;margin-bottom:10px" data-i18n="sop.notes">作業備註</div>
             <textarea id="sopNote" placeholder="${localText('若有異常或臨時調整請註明...','Note any deviation or adjustment...','Vui lòng ghi chú nếu có bất thường hoặc điều chỉnh tạm thời...')}"
-              style="width:100%;min-height:70px;padding:12px;background:rgba(0,0,0,.25);border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px;resize:vertical"></textarea>
+              style="width:100%;min-height:70px;padding:12px;background:#fff;border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px;resize:vertical"></textarea>
           </div>
 
           <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
@@ -1235,24 +1235,24 @@ function renderSOPDetail(){
           <div style="font-weight:700;margin-bottom:10px" data-i18n="sop.attach">附加照片</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div style="aspect-ratio:1;border-radius:10px;background:var(--c-panel2);border:2px dashed var(--c-line);display:flex;align-items:center;justify-content:center;color:var(--c-mute);font-size:24px">📷</div>
-            <div style="aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#3a4458,#2a3245);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px">🌾</div>
+            <div style="aspect-ratio:1;border-radius:10px;background:#fff;border:1px solid #111;display:flex;align-items:center;justify-content:center;color:#111;font-size:32px">🌾</div>
           </div>
           <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="showToast('${localText('拍照功能 (demo)','Camera (demo)','Chức năng chụp ảnh (demo)')}','info')">📸 ${localText('拍照','Take photo','Chụp ảnh')}</button>
         </div>
         <div class="panel" style="padding:18px">
           <div style="font-weight:700;margin-bottom:10px">✍️ ${localText("電子簽核","E-signature","Ký điện tử")}</div>
           ${sopState.signatures[i] ? `
-            <div style="padding:12px;border:1px solid #2ca66b;background:rgba(44,166,107,.06);border-radius:10px">
+            <div style="padding:12px;border:1px solid #168a4a;background:rgba(22,138,74,.06);border-radius:10px">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="badge b-ok">${t('sop.signed')}</span></div>
               <div style="font-size:13px"><b>${sopState.signatures[i].who}</b></div>
               <div style="font-size:11px;color:var(--c-mute)">${sopState.signatures[i].at}</div>
-              <div style="margin-top:8px;font-style:italic;font-size:18px;color:#fff7f2;font-family:cursive">${sopState.signatures[i].who}</div>
+              <div style="margin-top:8px;font-style:italic;font-size:18px;color:#111111;font-family:cursive">${sopState.signatures[i].who}</div>
             </div>
           ` : `
             <div style="display:grid;gap:8px">
               <label style="font-size:12px;color:var(--c-mute);font-weight:600">${t('common.signed')}</label>
               <input id="sopSignerName" value="${_esc(signerName)}" oninput="sopSetSignerName(this.value)" placeholder="${localText('請輸入簽核者姓名','Enter signer name','Nhập tên người ký')}"
-                style="width:100%;padding:10px 12px;background:rgba(0,0,0,.25);border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px" />
+                style="width:100%;padding:10px 12px;background:#fff;border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px" />
               <div style="padding:10px;border:1px dashed var(--c-line);border-radius:10px;text-align:center;color:var(--c-mute);font-size:13px">${localText("完成檢核項後即可簽核","Sign after all checks done","Sau khi hoàn tất kiểm tra có thể ký")}</div>
             </div>
           `}
@@ -1362,7 +1362,7 @@ function renderEquipment(){
             ${e.params.map(p=>{
               const inRange = p.val>=p.min && p.val<=p.max;
               const pct = Math.min(100, Math.max(0, (p.val - p.min)/(p.max-p.min)*100));
-              const color = p.alert?'#ef4444':inRange?'#2ca66b':'#f59e0b';
+              const color = p.alert?'#ef4444':inRange?'#168a4a':'#f59e0b';
               return `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px;margin-bottom:4px">
                 <span style="color:var(--c-mute);font-weight:600">${byLang(p,"label")}</span>
                 <span style="font-weight:700;color:${color}">${p.val}${p.unit} <span style="color:var(--c-mute);font-weight:500">/ ${p.min}-${p.max}</span></span>
@@ -1411,7 +1411,7 @@ function renderEquipment(){
       {label:localText("膨化模頭溫度","Die temp","Nhiệt độ khuôn đùn"), data:labels.map((_,i)=> 84+Math.sin(i/4)*3+Math.random()*2), borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.08)", tension:.4, pointRadius:0, fill:true},
       {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:labels.map((_,i)=> 68+Math.sin(i/5)*2+Math.random()*1), borderColor:"#d6282f", backgroundColor:"rgba(214,40,47,.05)", tension:.4, pointRadius:0},
       {label:localText("乾燥爐溫","Oven temp","Nhiệt độ lò sấy"), data:labels.map((_,i)=> 135+Math.sin(i/3)*4+Math.random()*2), borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.05)", tension:.4, pointRadius:0},
-      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map((_,i)=> 38+Math.sin(i/6)*1+Math.random()*0.6), borderColor:"#2ca66b", backgroundColor:"rgba(44,166,107,.05)", tension:.4, pointRadius:0},
+      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map((_,i)=> 38+Math.sin(i/6)*1+Math.random()*0.6), borderColor:"#168a4a", backgroundColor:"rgba(22,138,74,.05)", tension:.4, pointRadius:0},
     ]},
     options:chartOpts()
   }));
@@ -1429,9 +1429,9 @@ function renderAI(){
     {id:"param",  icon:"📊", titleZh:"參數異常偵測",  titleEn:"Parameter Anomaly",   descZh:"以 IoT 訊號 + 統計過程控制 (SPC) 即時偵測超界 / 漂移 / 趨勢警告。", descEn:"IoT + SPC realtime out-of-spec / drift / trend warnings.",
      stat:[{k:LANG==='zh'?"監控點":"Tags",v:"32",ok:true},{k:LANG==='zh'?"觸發":"Triggered",v:"5",ok:false},{k:LANG==='zh'?"準確率":"Accuracy",v:"99.2%",ok:true}], color:"#f59e0b"},
     {id:"vision", icon:"📷", titleZh:"影像視覺辨識",  titleEn:"Vision Recognition",  descZh:"產品外觀 / 蒸氣噴出 / PPE 配戴 / 異物 視覺判定，YOLOv8 / OCR 雙引擎。",            descEn:"Product appearance / steam / PPE / foreign matter detection.",
-     stat:[{k:LANG==='zh'?"辨識張數":"Frames",v:"38,420",ok:true},{k:LANG==='zh'?"良品率":"Good%",v:"99.1%",ok:true},{k:LANG==='zh'?"信心度":"Confidence",v:"96.4%",ok:true}], color:"#9b1c2a"},
+     stat:[{k:LANG==='zh'?"辨識張數":"Frames",v:"38,420",ok:true},{k:LANG==='zh'?"良品率":"Good%",v:"99.1%",ok:true},{k:LANG==='zh'?"信心度":"Confidence",v:"96.4%",ok:true}], color:"#8d1118"},
     {id:"yield",  icon:"📈", titleZh:"良率與品質分析",titleEn:"Yield & Quality",     descZh:"批次良率分解、不良成因 Pareto、良率預測與改善建議生成。",                                   descEn:"Yield decomposition, defect Pareto, yield forecast, improvement tips.",
-     stat:[{k:LANG==='zh'?"7 日良率":"7-d yield",v:"94.0%",ok:true},{k:LANG==='zh'?"改善建議":"Tips",v:"4",ok:true},{k:LANG==='zh'?"預測誤差":"MAE",v:"0.6%",ok:true}], color:"#2ca66b"},
+     stat:[{k:LANG==='zh'?"7 日良率":"7-d yield",v:"94.0%",ok:true},{k:LANG==='zh'?"改善建議":"Tips",v:"4",ok:true},{k:LANG==='zh'?"預測誤差":"MAE",v:"0.6%",ok:true}], color:"#168a4a"},
   ];
 
   const events = LANG==='zh'?[
@@ -1470,7 +1470,7 @@ function renderAI(){
           <div style="font-weight:800;font-size:16px">${LANG==='zh'?e.titleZh:e.titleEn}</div>
           <div style="font-size:12px;color:var(--c-mute);margin-top:4px;line-height:1.55;min-height:54px">${LANG==='zh'?e.descZh:e.descEn}</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:12px">
-            ${e.stat.map(s=>`<div style="background:rgba(0,0,0,.18);padding:8px 6px;border-radius:8px;text-align:center">
+            ${e.stat.map(s=>`<div style="background:#f7f7f7;padding:8px 6px;border-radius:8px;text-align:center">
               <div style="font-size:11px;color:var(--c-mute);font-weight:600">${s.k}</div>
               <div style="font-size:14px;font-weight:800;color:${s.ok?'#bff3d2':'#fcd34d'}">${s.v}</div>
             </div>`).join('')}
@@ -1520,8 +1520,8 @@ function renderAI(){
   window._charts.push(new Chart(ctx,{
     type:"doughnut",
     data:{ labels:[LANG==='zh'?"參數異常":"Param", LANG==='zh'?"步驟合規":"Compliance", LANG==='zh'?"視覺辨識":"Vision", LANG==='zh'?"良率分析":"Yield"],
-      datasets:[{data:[42,18,28,12], backgroundColor:["#f59e0b","#d6282f","#9b1c2a","#2ca66b"], borderWidth:0}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#f5dfd6', boxWidth:10, font:{size:11}}}}}
+      datasets:[{data:[42,18,28,12], backgroundColor:["#f59e0b","#d6282f","#8d1118","#168a4a"], borderWidth:0}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#111111', boxWidth:10, font:{size:11}}}}}
   }));
 }
 function aiRunAll(){
@@ -1551,19 +1551,19 @@ function renderQuality(){
   const defects = LANG==='zh'?[
     {n:"破損 / 缺角", v:42, c:"#ef4444"},
     {n:"蒸氣噴出 / 半熟", v:18, c:"#f59e0b"},
-    {n:"尺寸超差", v:14, c:"#9b1c2a"},
+    {n:"尺寸超差", v:14, c:"#8d1118"},
     {n:"色澤不均", v:9,  c:"#d6282f"},
     {n:"異物", v:2,      c:"#7f1d1d"},
   ]:LANG==='vi'?[
     {n:"Vỡ / mẻ góc", v:42, c:"#ef4444"},
     {n:"Phun hơi / chưa chín", v:18, c:"#f59e0b"},
-    {n:"Kích thước lệch chuẩn", v:14, c:"#9b1c2a"},
+    {n:"Kích thước lệch chuẩn", v:14, c:"#8d1118"},
     {n:"Màu không đều", v:9,  c:"#d6282f"},
     {n:"Dị vật", v:2, c:"#7f1d1d"},
   ]:[
     {n:"Broken / chipped", v:42, c:"#ef4444"},
     {n:"Steam puff / undercook", v:18, c:"#f59e0b"},
-    {n:"Out-of-spec dimension", v:14, c:"#9b1c2a"},
+    {n:"Out-of-spec dimension", v:14, c:"#8d1118"},
     {n:"Color uneven", v:9,  c:"#d6282f"},
     {n:"Foreign matter", v:2, c:"#7f1d1d"},
   ];
@@ -1616,7 +1616,7 @@ function renderQuality(){
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px">
           ${items.map(it=>`<div class="product-thumb ${it.bad?'bad':'good'}" title="${it.n}">${it.bad?'⚠':'🌾'}</div>`).join('')}
         </div>
-        <div style="margin-top:14px;padding:12px;border-radius:10px;background:rgba(155,28,42,.06);border:1px solid rgba(155,28,42,.3)">
+        <div style="margin-top:14px;padding:12px;border-radius:10px;background:rgba(214,40,47,.06);border:1px solid rgba(214,40,47,.3)">
           <div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 ${localText('AI 視覺結論','AI vision conclusion','Kết luận thị giác AI')}</div>
           <div style="font-size:13px">${localText(
             '本批次良率 83.3%（低於目標 97%），主因為「蒸氣噴出/半熟」與「尺寸超差」。建議檢查切段機皮帶同步速度與膨化機溫度穩定性。',
@@ -1658,7 +1658,7 @@ function renderQuality(){
     type:"line",
     data:{labels:["4/28","4/29","4/30","5/1","5/2","5/3","5/4"],
       datasets:[
-        {label:localText('批次良率','Yield','Tỷ lệ đạt theo lô'), data:[92.1,93.4,94.0,93.8,94.5,94.2,83.3], borderColor:"#2ca66b", backgroundColor:"rgba(44,166,107,.14)", tension:.35, fill:true},
+        {label:localText('批次良率','Yield','Tỷ lệ đạt theo lô'), data:[92.1,93.4,94.0,93.8,94.5,94.2,83.3], borderColor:"#168a4a", backgroundColor:"rgba(22,138,74,.14)", tension:.35, fill:true},
         {label:localText('目標','Target','Mục tiêu'), data:[97,97,97,97,97,97,97], borderColor:"#d6282f", borderDash:[6,6], pointRadius:0}
       ]},
     options:chartOpts()
@@ -1872,7 +1872,7 @@ function renderAudit(){
   window._charts.push(new Chart(ctx,{
     type:"bar",
     data:{labels:days, datasets:[{label:LANG==='zh'?'資料完整性 %':'Completeness %', data:days.map(()=>97+Math.random()*3), backgroundColor:"#d6282f", borderRadius:3}]},
-    options:{...chartOpts(), scales:{y:{min:90,max:100,ticks:{color:"#d9b7ad"},grid:{color:"rgba(255,255,255,.05)"}},x:{display:false}}, plugins:{legend:{display:false}}}
+    options:{...chartOpts(), scales:{y:{min:90,max:100,ticks:{color:"#555555"},grid:{color:"rgba(0,0,0,.08)"}},x:{display:false}}, plugins:{legend:{display:false}}}
   }));
 }
 </script>
@@ -1929,7 +1929,7 @@ function renderTraining(){
               <div style="font-size:11px;color:var(--c-mute);font-weight:700">M${String(i+1).padStart(2,'0')}${m.exam?' · '+(LANG==='zh'?'考核':'Exam'):''}</div>
               <div style="font-weight:700;margin-top:2px;line-height:1.35">${m.n}</div>
             </div>
-            <span class="badge ${m.prog===100?'b-ok':m.prog>0?'b-info':''}" style="${m.prog===0?'background:rgba(255,255,255,.05);color:var(--c-mute);border:1px solid var(--c-line)':''}">${m.prog===100?(LANG==='zh'?'完成':'Done'):m.prog>0?(LANG==='zh'?'進行中':'Active'):(LANG==='zh'?'未開始':'Not started')}</span>
+            <span class="badge ${m.prog===100?'b-ok':m.prog>0?'b-info':''}" style="${m.prog===0?'background:#f2f2f2;color:var(--c-mute);border:1px solid var(--c-line)':''}">${m.prog===100?(LANG==='zh'?'完成':'Done'):m.prog>0?(LANG==='zh'?'進行中':'Active'):(LANG==='zh'?'未開始':'Not started')}</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--c-mute);margin-top:10px">
             <span>⏱ ${m.d}</span><span>📝 ${m.q} ${LANG==='zh'?'題':'Q'}</span><span>${m.prog}%</span>
@@ -2203,7 +2203,7 @@ function updateEquipmentLive() {
     if (!p) return;
     const inRange = p.val>=p.min && p.val<=p.max;
     const pct = Math.min(100, Math.max(0, (p.val-p.min)/(p.max-p.min)*100));
-    const color = p.alert?'#ef4444':inRange?'#2ca66b':'#f59e0b';
+    const color = p.alert?'#ef4444':inRange?'#168a4a':'#f59e0b';
     const valEl = el.querySelector('[data-val]');
     if (valEl) { valEl.textContent = p.val + p.unit; valEl.style.color = color; }
     const bar = el.querySelector('[data-bar]');
@@ -2270,7 +2270,7 @@ function ticketView(id) {
         '<span style="color:var(--c-mute);font-size:13px">'+tk.id+' · '+tk.eq+'</span></div>' +
       '<div style="font-size:18px;font-weight:700">'+byLang(tk,'title')+'</div>' +
       '<div style="color:var(--c-mute);line-height:1.65">'+byLang(tk,'desc')+'</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;padding:12px;background:rgba(0,0,0,.18);border-radius:10px">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;padding:12px;background:#f7f7f7;border-radius:10px">' +
         '<div><span style="color:var(--c-mute)">'+localText('建立時間','Created','Tạo lúc')+'：</span>'+tk.created+'</div>' +
         '<div><span style="color:var(--c-mute)">'+localText('建立者','By','Người tạo')+'：</span>'+tk.createdBy+'</div></div>' +
       (tk.status!=='completed' ?
@@ -2401,7 +2401,7 @@ function formOpen(formId, batchId) {
       '<input type="'+f.type+'" '+(f.step?'step="'+f.step+'"':'')+' id="ff_'+f.id+'" value="'+_esc(v)+'" style="width:100%;padding:10px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:8px;color:var(--c-text);margin-top:4px;font-family:inherit"/></div>';
   }).join('');
   const html =
-    '<div style="font-size:12px;color:var(--c-mute);margin-bottom:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:10px 12px;background:rgba(0,0,0,.18);border-radius:8px">' +
+    '<div style="font-size:12px;color:var(--c-mute);margin-bottom:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:10px 12px;background:#f7f7f7;border-radius:8px">' +
       '<span>'+t('common.batch')+': <b style="color:var(--c-text)">'+batchId+'</b></span>' +
       '<span>'+localText('時間','Time','Thời gian')+': <b style="color:var(--c-text)">'+nowFull()+'</b></span>' +
       '<span>'+localText('操作員','Operator','Nhân viên')+': <b style="color:var(--c-text)">'+(currentUser?roleName(currentUser):'—')+'</b></span>' +
@@ -2435,10 +2435,10 @@ function takePhoto(stepIdx) {
   canvas.width = 240; canvas.height = 240;
   const ctx = canvas.getContext('2d');
   const bg = ctx.createLinearGradient(0,0,240,240);
-  bg.addColorStop(0,'#3a2020'); bg.addColorStop(1,'#241112');
+  bg.addColorStop(0,'#f7f7f7'); bg.addColorStop(1,'#ffffff');
   ctx.fillStyle = bg; ctx.fillRect(0,0,240,240);
-  ctx.fillStyle = '#3a4458'; ctx.fillRect(0,140,240,60);
-  for (let x=0;x<240;x+=20){ ctx.fillStyle = '#28324a'; ctx.fillRect(x,140,2,60); }
+  ctx.fillStyle = '#e5e5e5'; ctx.fillRect(0,140,240,60);
+  for (let x=0;x<240;x+=20){ ctx.fillStyle = '#111111'; ctx.fillRect(x,140,2,60); }
   const isBad = Math.random() < 0.2;
   ctx.fillStyle = isBad ? '#7c3a1c' : '#d4a155';
   ctx.beginPath(); ctx.ellipse(120,140,55,30,0,0,Math.PI*2); ctx.fill();
@@ -2453,9 +2453,9 @@ function takePhoto(stepIdx) {
     ctx.beginPath(); ctx.moveTo(140,128); ctx.lineTo(155,150); ctx.stroke();
   }
   ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,210,240,30);
-  ctx.fillStyle='#f5dfd6'; ctx.font='bold 11px sans-serif';
+  ctx.fillStyle='#ffffff'; ctx.font='bold 11px sans-serif';
   ctx.fillText('STEP '+(stepIdx+1)+' · '+nowFull(), 8, 228);
-  ctx.fillStyle = isBad ? '#ef4444' : '#2ca66b';
+  ctx.fillStyle = isBad ? '#ef4444' : '#168a4a';
   ctx.font='bold 14px sans-serif';
   ctx.fillText(isBad?'AI: NG':'AI: OK', 178, 28);
   const url = canvas.toDataURL('image/png');
@@ -2872,8 +2872,8 @@ window.renderSOPDetail = function() {
   const photoHtml = photos.length === 0
     ? '<div style="aspect-ratio:1;border-radius:10px;background:var(--c-panel2);border:2px dashed var(--c-line);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--c-mute);font-size:28px;grid-column:span 2">📷<div style="font-size:11px;margin-top:4px">'+localText('尚無照片','No photos','Chưa có ảnh')+'</div></div>'
     : photos.map(function(p,pi){
-        return '<div style="aspect-ratio:1;border-radius:10px;background-image:url(\''+p.url+'\');background-size:cover;background-position:center;cursor:pointer;border:2px solid '+(p.isBad?'#ef4444':'#2ca66b')+';position:relative" onclick="viewPhoto('+i+','+pi+')">' +
-          '<div style="position:absolute;top:4px;right:4px;background:'+(p.isBad?'#ef4444':'#2ca66b')+';color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px">'+(p.isBad?'NG':'OK')+'</div></div>';
+        return '<div style="aspect-ratio:1;border-radius:10px;background-image:url(\''+p.url+'\');background-size:cover;background-position:center;cursor:pointer;border:2px solid '+(p.isBad?'#ef4444':'#168a4a')+';position:relative" onclick="viewPhoto('+i+','+pi+')">' +
+          '<div style="position:absolute;top:4px;right:4px;background:'+(p.isBad?'#ef4444':'#168a4a')+';color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px">'+(p.isBad?'NG':'OK')+'</div></div>';
       }).join('');
 
   const html =
@@ -2888,7 +2888,7 @@ window.renderSOPDetail = function() {
             '<span class="ai-tag">AI '+localText('監督中','watching','đang giám sát')+'</span>' +
             (s.duration?'<span class="badge b-info">⏱ '+s.duration+' min</span>':'') +
           '</div></div>' +
-        (s.aiZh?'<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(155,28,42,.12),rgba(214,40,47,.06));border:1px solid rgba(155,28,42,.4)">' +
+        (s.aiZh?'<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(214,40,47,.12),rgba(214,40,47,.06));border:1px solid rgba(214,40,47,.4)">' +
           '<div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 '+localText('AI 即時建議','AI insight','Gợi ý AI tức thời')+'</div>' +
           '<div style="font-size:13px">'+byLang(s,'ai')+'</div></div>':'') +
         '<div style="margin-top:18px"><div style="font-weight:700;margin-bottom:10px">'+t('sop.checklist')+'</div>' +
@@ -2903,7 +2903,7 @@ window.renderSOPDetail = function() {
           params.map(function(p){return '<tr><td><b>'+p.k+'</b></td><td>'+p.v+'</td><td style="color:var(--c-mute)">'+p.t+'</td><td>'+(p.ok?'<span class="badge b-ok">OK</span>':'<span class="badge b-bad">NG</span>')+'</td></tr>'}).join('') +
           '</tbody></table></div>' +
         '<div style="margin-top:18px"><div style="font-weight:700;margin-bottom:10px">'+t('sop.notes')+'</div>' +
-          '<textarea id="sopNote" placeholder="'+localText('若有異常或臨時調整請註明...','Note any deviation...','Vui lòng ghi chú nếu có bất thường hoặc điều chỉnh...')+'" style="width:100%;min-height:70px;padding:12px;background:rgba(0,0,0,.25);border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px;resize:vertical">'+(sopState.notes&&sopState.notes[i]?sopState.notes[i]:'')+'</textarea></div>' +
+          '<textarea id="sopNote" placeholder="'+localText('若有異常或臨時調整請註明...','Note any deviation...','Vui lòng ghi chú nếu có bất thường hoặc điều chỉnh...')+'" style="width:100%;min-height:70px;padding:12px;background:#fff;border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px;resize:vertical">'+(sopState.notes&&sopState.notes[i]?sopState.notes[i]:'')+'</textarea></div>' +
         '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">' +
           '<button class="btn btn-ghost" onclick="sopPrev()" '+(i===0?'disabled style="opacity:.4"':'')+'>← '+t('sop.prev')+'</button>' +
           '<button class="btn btn-warn" onclick="sopSkip()">'+t('sop.skip')+'</button>' +
@@ -2927,14 +2927,14 @@ window.renderSOPDetail = function() {
         '<div class="panel" style="padding:18px">' +
           '<div style="font-weight:700;margin-bottom:10px">✍️ '+localText('電子簽核','E-signature','Ký điện tử')+'</div>' +
           (sopState.signatures[i] ?
-            '<div style="padding:12px;border:1px solid #2ca66b;background:rgba(44,166,107,.06);border-radius:10px">' +
+            '<div style="padding:12px;border:1px solid #168a4a;background:rgba(22,138,74,.06);border-radius:10px">' +
               '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="badge b-ok">'+t('sop.signed')+'</span></div>' +
               '<div style="font-size:13px"><b>'+sopState.signatures[i].who+'</b></div>' +
               '<div style="font-size:11px;color:var(--c-mute)">'+sopState.signatures[i].at+'</div>' +
-              '<div style="margin-top:8px;font-style:italic;font-size:18px;color:#fff7f2;font-family:cursive">'+sopState.signatures[i].who+'</div></div>'
+              '<div style="margin-top:8px;font-style:italic;font-size:18px;color:#111111;font-family:cursive">'+sopState.signatures[i].who+'</div></div>'
             : '<div style="display:grid;gap:8px">' +
                 '<label style="font-size:12px;color:var(--c-mute);font-weight:600">'+t('common.signed')+'</label>' +
-                '<input id="sopSignerName" value="'+_esc(signerName)+'" oninput="sopSetSignerName(this.value)" placeholder="'+localText('請輸入簽核者姓名','Enter signer name','Nhập tên người ký')+'" style="width:100%;padding:10px 12px;background:rgba(0,0,0,.25);border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px" />' +
+                '<input id="sopSignerName" value="'+_esc(signerName)+'" oninput="sopSetSignerName(this.value)" placeholder="'+localText('請輸入簽核者姓名','Enter signer name','Nhập tên người ký')+'" style="width:100%;padding:10px 12px;background:#fff;border:1px solid var(--c-line);border-radius:10px;color:var(--c-text);font-family:inherit;font-size:13px" />' +
                 '<div style="padding:10px;border:1px dashed var(--c-line);border-radius:10px;text-align:center;color:var(--c-mute);font-size:13px">'+localText('完成所有檢核項後即可簽核','Sign after all checks done','Sau khi hoàn tất kiểm tra có thể ký')+'</div>' +
               '</div>') +
         '</div>' +
@@ -2980,7 +2980,7 @@ window.renderEquipment = function() {
       const paramsHtml = e.params.map(function(p) {
         const inRange = p.val>=p.min && p.val<=p.max;
         const pct = Math.min(100, Math.max(0, (p.val-p.min)/(p.max-p.min)*100));
-        const color = p.alert?'#ef4444':inRange?'#2ca66b':'#f59e0b';
+        const color = p.alert?'#ef4444':inRange?'#168a4a':'#f59e0b';
         return '<div data-eqparam="'+e.id+':'+p.key+'">' +
           '<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:10px;margin-bottom:4px">' +
             '<span style="color:var(--c-mute);font-weight:600">'+byLang(p,'label')+'</span>' +
@@ -3023,7 +3023,7 @@ window.renderEquipment = function() {
       {label:localText("膨化模頭溫度","Die temp","Nhiệt độ khuôn đùn"), data:labels.map(function(_,i){return 84+Math.sin(i/4)*3+Math.random()*2}), borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.08)", tension:.4, pointRadius:0, fill:true},
       {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:labels.map(function(_,i){return 68+Math.sin(i/5)*2+Math.random()*1}), borderColor:"#d6282f", backgroundColor:"rgba(214,40,47,.05)", tension:.4, pointRadius:0},
       {label:localText("乾燥爐溫","Oven temp","Nhiệt độ lò sấy"), data:labels.map(function(_,i){return 135+Math.sin(i/3)*4+Math.random()*2}), borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.05)", tension:.4, pointRadius:0},
-      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map(function(_,i){return 38+Math.sin(i/6)*1+Math.random()*0.6}), borderColor:"#2ca66b", backgroundColor:"rgba(44,166,107,.05)", tension:.4, pointRadius:0}
+      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map(function(_,i){return 38+Math.sin(i/6)*1+Math.random()*0.6}), borderColor:"#168a4a", backgroundColor:"rgba(22,138,74,.05)", tension:.4, pointRadius:0}
     ]}, options: chartOpts()
   }));
 };
@@ -3036,9 +3036,9 @@ window.renderAI = function() {
     {id:"param",icon:"📊",titleZh:"參數異常偵測",titleEn:"Parameter Anomaly",titleVi:"Phát hiện thông số bất thường",descZh:"以 IoT 訊號 + SPC 即時偵測超界 / 漂移。",descEn:"IoT + SPC realtime detection.",descVi:"Dùng tín hiệu IoT + SPC để phát hiện vượt giới hạn hoặc trôi thông số theo thời gian thực.",
      stat:[{k:localText("監控點","Tags","Điểm giám sát"),v:"32",ok:true},{k:localText("觸發","Triggered","Đã kích hoạt"),v:""+STATE.aiEvents.filter(function(e){return e.engEn==='Parameter Anomaly'}).length,ok:false},{k:localText("準確率","Accuracy","Độ chính xác"),v:"99.2%",ok:true}], color:"#f59e0b"},
     {id:"vision",icon:"📷",titleZh:"影像視覺辨識",titleEn:"Vision Recognition",titleVi:"Nhận diện hình ảnh",descZh:"產品外觀 / 蒸氣噴出 / PPE / 異物 視覺判定。",descEn:"Product / steam / PPE / foreign matter.",descVi:"Đánh giá hình ảnh về ngoại quan sản phẩm, phun hơi, PPE và dị vật.",
-     stat:[{k:localText("辨識張數","Frames","Khung hình"),v:"38,420",ok:true},{k:localText("良品率","Good%","Tỷ lệ hàng tốt"),v:"99.1%",ok:true},{k:localText("信心度","Confidence","Độ tin cậy"),v:"96.4%",ok:true}], color:"#9b1c2a"},
+     stat:[{k:localText("辨識張數","Frames","Khung hình"),v:"38,420",ok:true},{k:localText("良品率","Good%","Tỷ lệ hàng tốt"),v:"99.1%",ok:true},{k:localText("信心度","Confidence","Độ tin cậy"),v:"96.4%",ok:true}], color:"#8d1118"},
     {id:"yield",icon:"📈",titleZh:"良率與品質分析",titleEn:"Yield & Quality",titleVi:"Tỷ lệ đạt & chất lượng",descZh:"批次良率分解、不良 Pareto、預測。",descEn:"Yield decomposition, defect Pareto, forecast.",descVi:"Phân rã tỷ lệ đạt theo lô, Pareto lỗi và dự báo.",
-     stat:[{k:localText("7 日良率","7-d yield","Tỷ lệ đạt 7 ngày"),v:"94.0%",ok:true},{k:localText("改善建議","Tips","Gợi ý cải thiện"),v:""+STATE.aiEvents.filter(function(e){return e.engEn==='Yield & Quality'}).length,ok:true},{k:localText("預測誤差","MAE","Sai số dự báo"),v:"0.6%",ok:true}], color:"#2ca66b"},
+     stat:[{k:localText("7 日良率","7-d yield","Tỷ lệ đạt 7 ngày"),v:"94.0%",ok:true},{k:localText("改善建議","Tips","Gợi ý cải thiện"),v:""+STATE.aiEvents.filter(function(e){return e.engEn==='Yield & Quality'}).length,ok:true},{k:localText("預測誤差","MAE","Sai số dự báo"),v:"0.6%",ok:true}], color:"#168a4a"},
   ];
   const html =
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:16px">' +
@@ -3054,7 +3054,7 @@ window.renderAI = function() {
         '<div style="font-weight:800;font-size:16px">'+byLang(e,'title')+'</div>' +
         '<div style="font-size:12px;color:var(--c-mute);margin-top:4px;line-height:1.55;min-height:54px">'+byLang(e,'desc')+'</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:12px">' +
-        e.stat.map(function(s){return '<div style="background:rgba(0,0,0,.18);padding:8px 6px;border-radius:8px;text-align:center">' +
+        e.stat.map(function(s){return '<div style="background:#f7f7f7;padding:8px 6px;border-radius:8px;text-align:center">' +
           '<div style="font-size:11px;color:var(--c-mute);font-weight:600">'+s.k+'</div>' +
           '<div style="font-size:14px;font-weight:800;color:'+(s.ok?'#bff3d2':'#fcd34d')+'">'+s.v+'</div></div>'}).join('') +
         '</div>' +
@@ -3097,8 +3097,8 @@ window.renderAI = function() {
   window._charts.push(new Chart(document.getElementById('aiDonut').getContext('2d'),{
     type:'doughnut',
     data:{labels:[localText("參數異常","Param","Thông số"), localText("步驟合規","Compliance","Tuân thủ"), localText("視覺辨識","Vision","Thị giác"), localText("良率分析","Yield","Tỷ lệ đạt")],
-      datasets:[{data:[counts.param||1,counts.comp||1,counts.vision||1,counts.yield||1], backgroundColor:["#f59e0b","#d6282f","#9b1c2a","#2ca66b"], borderWidth:0}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#f5dfd6', boxWidth:10, font:{size:11}}}}}
+      datasets:[{data:[counts.param||1,counts.comp||1,counts.vision||1,counts.yield||1], backgroundColor:["#f59e0b","#d6282f","#8d1118","#168a4a"], borderWidth:0}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#111111', boxWidth:10, font:{size:11}}}}}
   }));
 };
 
@@ -3230,7 +3230,7 @@ window.renderAudit = function() {
   window._charts.push(new Chart(document.getElementById('auChart').getContext('2d'),{
     type:'bar',
     data:{labels:days, datasets:[{label:localText('資料完整性 %','Completeness %','Độ đầy đủ dữ liệu %'), data:days.map(function(){return 97+Math.random()*3}), backgroundColor:'#d6282f', borderRadius:3}]},
-    options:Object.assign({},chartOpts(),{scales:{y:{min:90,max:100,ticks:{color:'#d9b7ad'},grid:{color:'rgba(255,255,255,.05)'}},x:{display:false}}, plugins:{legend:{display:false}}})
+    options:Object.assign({},chartOpts(),{scales:{y:{min:90,max:100,ticks:{color:'#555555'},grid:{color:'rgba(0,0,0,.08)'}},x:{display:false}}, plugins:{legend:{display:false}}})
   }));
 };
 
@@ -3271,7 +3271,7 @@ window.renderTraining = function() {
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
             '<div><div style="font-size:11px;color:var(--c-mute);font-weight:700">M'+String(i+1).padStart(2,'0')+(isExam?' · '+localText('考核','Exam','Kiểm tra'):'')+'</div>' +
             '<div style="font-weight:700;margin-top:2px;line-height:1.35">'+name+'</div></div>' +
-            '<span class="badge '+(stCls||'')+'" style="'+(prog===0?'background:rgba(255,255,255,.05);color:var(--c-mute);border:1px solid var(--c-line)':'')+'">'+stTxt+'</span></div>' +
+            '<span class="badge '+(stCls||'')+'" style="'+(prog===0?'background:#f2f2f2;color:var(--c-mute);border:1px solid var(--c-line)':'')+'">'+stTxt+'</span></div>' +
           '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--c-mute);margin-top:10px">' +
             '<span>⏱ '+dur[i]+'</span><span>📝 '+qcount[i]+' '+localText('題','Q','câu')+'</span>' +
             '<span>'+(score!==undefined?localText('分數 ','Score ','Điểm ')+score:prog+'%')+'</span></div>' +

@@ -91,9 +91,17 @@
   .train-progress>span{display:block;height:100%;background:#d6282f}
   .lang-select{appearance:auto;padding:7px 30px 7px 10px;border-radius:10px;background:var(--c-panel2);border:1px solid var(--c-line);color:var(--c-text);font:inherit;font-size:12px;font-weight:700}
   .lang-select:focus{outline:2px solid rgba(214,40,47,.35);border-color:var(--c-accent)}
+  .brand-lockup{display:flex;align-items:center;gap:12px;min-width:0}
+  .header-lockup{flex:0 1 300px}
+  .brand-logo{display:block;object-fit:contain;background:#fff;border:1px solid var(--c-line);border-radius:6px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+  .brand-logo.login{width:128px;height:78px;padding:6px}
+  .brand-logo.header{width:82px;height:50px;padding:4px;flex-shrink:0}
+  .brand-text{min-width:0}
+  .brand-name-line,.brand-tag{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .context-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:10px 12px;margin-bottom:14px;align-items:stretch}
   @media(max-width:900px){.context-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  @media(max-width:520px){.context-grid{grid-template-columns:1fr}}
+  @media(max-width:720px){.online-pill{display:none!important}.header-lockup{flex-basis:220px}.brand-tag{display:none}}
+  @media(max-width:520px){.context-grid{grid-template-columns:1fr}.brand-logo.login{width:104px;height:64px}.brand-logo.header{width:58px;height:36px}.header-lockup{flex-basis:150px}}
 </style>
 </head>
 <body>
@@ -101,8 +109,9 @@
 <!-- =================== LOGIN SCREEN =================== -->
 <div id="loginScreen" class="login-bg" style="position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:20px">
   <div class="glass" style="width:100%;max-width:440px;padding:36px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-      <div>
+    <div class="brand-lockup" style="margin-bottom:8px">
+      <img class="brand-logo login" src="assets/ting-guan-logo.jpg" alt="TING GUAN LOGO" />
+      <div class="brand-text">
         <div style="font-size:20px;font-weight:800;letter-spacing:-.3px" data-i18n="brand.name">廷冠食品</div>
         <div style="font-size:12px;color:var(--c-mute)" data-i18n="login.subtitle">膨化食品生產製程 SOP 數位化與 AI 智慧稽核平台</div>
       </div>
@@ -175,14 +184,15 @@
   <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--c-line)">
     <div style="display:flex;align-items:center;gap:14px;padding:12px 20px">
       <button class="btn btn-ghost mobile-menu" onclick="document.querySelector('.sidebar').classList.toggle('open')" style="padding:6px 10px">☰</button>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div>
-          <div style="font-weight:800;font-size:15px;letter-spacing:-.3px"><span data-i18n="brand.name">廷冠食品</span> <span style="font-size:11px;color:var(--c-mute);font-weight:500">v1.0</span></div>
-          <div style="font-size:11px;color:var(--c-mute)" data-i18n="brand.tag">廷冠食品 ·TG-009產線</div>
+      <div class="brand-lockup header-lockup">
+        <img class="brand-logo header" src="assets/ting-guan-logo.jpg" alt="TING GUAN LOGO" />
+        <div class="brand-text">
+          <div class="brand-name-line" style="font-weight:800;font-size:15px;letter-spacing:-.3px"><span data-i18n="brand.name">廷冠食品</span> <span style="font-size:11px;color:var(--c-mute);font-weight:500">v1.0</span></div>
+          <div class="brand-tag" style="font-size:11px;color:var(--c-mute)" data-i18n="brand.tag">廷冠食品 ·TG-009產線</div>
         </div>
       </div>
       <div style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#eefaf3;border:1px solid #136b3a;font-size:12px;color:#136b3a">
+      <div class="online-pill" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#eefaf3;border:1px solid #136b3a;font-size:12px;color:#136b3a">
         <span class="pulse"></span> <span data-i18n="app.online">系統連線中</span>
       </div>
       <label title="Language" style="display:flex;align-items:center;gap:6px">

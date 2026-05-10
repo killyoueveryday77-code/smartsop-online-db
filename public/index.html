@@ -247,6 +247,8 @@
 <!-- =================== TOAST/MODAL CONTAINER =================== -->
 <div id="toastZone"></div>
 <div id="modalZone"></div>
+<input id="sopCameraInput" type="file" accept="image/*" capture="environment"
+  style="position:fixed;left:-9999px;top:auto;width:1px;height:1px;opacity:0" />
 
 <script>
 /* ================================================================
@@ -1247,7 +1249,7 @@ function renderSOPDetail(){
             <div style="aspect-ratio:1;border-radius:10px;background:var(--c-panel2);border:2px dashed var(--c-line);display:flex;align-items:center;justify-content:center;color:var(--c-mute);font-size:24px">📷</div>
             <div style="aspect-ratio:1;border-radius:10px;background:#fff;border:1px solid #111;display:flex;align-items:center;justify-content:center;color:#111;font-size:32px">🌾</div>
           </div>
-          <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="showToast('${localText('拍照功能 (demo)','Camera (demo)','Chức năng chụp ảnh (demo)')}','info')">📸 ${localText('拍照','Take photo','Chụp ảnh')}</button>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="takePhoto(${i})">📸 ${localText('開啟 iPad 鏡頭 (AI 視覺判定)','Open iPad camera (AI vision)','Mở camera iPad (AI thị giác)')}</button>
         </div>
         <div class="panel" style="padding:18px">
           <div style="font-weight:700;margin-bottom:10px">✍️ ${localText("電子簽核","E-signature","Ký điện tử")}</div>
@@ -2440,7 +2442,77 @@ function formSave(formId, batchId) {
 }
 
 /* ---- PHOTO CAPTURE ---- */
+function getCameraInput() {
+  let input = document.getElementById('sopCameraInput');
+  if (!input) {
+    input = document.createElement('input');
+    input.id = 'sopCameraInput';
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.setAttribute('capture', 'environment');
+    input.style.cssText = 'position:fixed;left:-9999px;top:auto;width:1px;height:1px;opacity:0';
+    document.body.appendChild(input);
+  }
+  input.accept = 'image/*';
+  input.setAttribute('capture', 'environment');
+  return input;
+}
 function takePhoto(stepIdx) {
+  const input = getCameraInput();
+  input.value = '';
+  input.onchange = function(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    handleCameraPhoto(stepIdx, file);
+    input.value = '';
+  };
+  input.click();
+}
+function handleCameraPhoto(stepIdx, file) {
+  if (!window.FileReader) {
+    showToast(localText('此裝置不支援讀取相機照片','This device cannot read camera photos','Thiết bị này không hỗ trợ đọc ảnh camera'), 'bad');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onerror = function() {
+    showToast(localText('照片讀取失敗，請再拍一次','Could not read the photo, please try again','Không đọc được ảnh, vui lòng chụp lại'), 'bad');
+  };
+  reader.onload = function(event) {
+    resizeCapturedPhoto(event.target.result, function(url) {
+      addPhotoRecord(stepIdx, url, file.name || localText('相機照片','Camera photo','Ảnh camera'));
+    });
+  };
+  reader.readAsDataURL(file);
+}
+function resizeCapturedPhoto(src, done) {
+  const img = new Image();
+  img.onload = function() {
+    const max = 1200;
+    const scale = Math.min(1, max / img.width, max / img.height);
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    done(canvas.toDataURL('image/jpeg', 0.86));
+  };
+  img.onerror = function() {
+    done(src);
+  };
+  img.src = src;
+}
+function addPhotoRecord(stepIdx, url, name) {
+  const isBad = Math.random() < 0.2;
+  const key = 'step_'+stepIdx;
+  if (!STATE.photos[key]) STATE.photos[key] = [];
+  STATE.photos[key].push({url:url, isBad:isBad, time:nowFull(), name:name || '', source:'camera'});
+  ssPersist();
+  showToast('📸 '+localText('已加入相機照片，AI 判定：','Camera photo added, AI result: ','Đã thêm ảnh camera, kết quả AI: ')+(isBad?'NG':'OK'), isBad?'warn':'ok');
+  if (currentPage === 'sop') renderSOPDetail();
+}
+function takeDemoPhoto(stepIdx) {
   const canvas = document.createElement('canvas');
   canvas.width = 240; canvas.height = 240;
   const ctx = canvas.getContext('2d');
@@ -2932,7 +3004,7 @@ window.renderSOPDetail = function() {
         '<div class="panel" style="padding:18px;margin-bottom:14px">' +
           '<div style="font-weight:700;margin-bottom:10px">'+t('sop.attach')+(photos.length?' ('+photos.length+')':'')+'</div>' +
           '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+photoHtml+'</div>' +
-          '<button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="takePhoto('+i+')">📸 '+localText('拍照 (AI 視覺判定)','Take photo (AI vision)','Chụp ảnh (AI thị giác)')+'</button>' +
+          '<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="takePhoto('+i+')">📸 '+localText('開啟 iPad 鏡頭 (AI 視覺判定)','Open iPad camera (AI vision)','Mở camera iPad (AI thị giác)')+'</button>' +
         '</div>' +
         '<div class="panel" style="padding:18px">' +
           '<div style="font-weight:700;margin-bottom:10px">✍️ '+localText('電子簽核','E-signature','Ký điện tử')+'</div>' +

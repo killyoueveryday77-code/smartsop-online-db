@@ -98,6 +98,13 @@
   .brand-logo.header{width:82px;height:50px;padding:4px;flex-shrink:0}
   .brand-text{min-width:0}
   .brand-name-line,.brand-tag{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .operator-camera-stage{position:relative;aspect-ratio:4/3;background:#f7f7f7;border:1px solid var(--c-line);border-radius:10px;overflow:hidden}
+  .operator-camera-stage video{width:100%;height:100%;object-fit:cover;background:#fff}
+  .operator-camera-overlay{position:absolute;left:8px;right:8px;bottom:8px;padding:7px 9px;border:1px solid #111;border-radius:8px;background:rgba(255,255,255,.92);color:#111;font-size:11px;font-weight:700}
+  .motion-meter{height:8px;border-radius:999px;background:#f2f2f2;border:1px solid #111;overflow:hidden}
+  .motion-meter>span{display:block;height:100%;width:0;background:#d6282f;transition:width .25s}
+  .motion-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .motion-chip{padding:8px;border:1px solid #111;border-radius:8px;background:#fff;font-size:11px;font-weight:700;color:#111}
   .context-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:10px 12px;margin-bottom:14px;align-items:stretch}
   @media(max-width:900px){.context-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:720px){.online-pill{display:none!important}.header-lockup{flex-basis:220px}.brand-tag{display:none}}
@@ -691,6 +698,7 @@ function login(role){
 }
 function logout(){
   currentUser = null;
+  stopOperatorCamera();
   syncRolePermissions();
   renderSessionContext();
   syncLoginContextInputs();
@@ -704,6 +712,7 @@ function navigate(page){
   if(!canAccessPage(page)) {
     page = roleLanding(currentUser);
   }
+  if (page !== "sop") stopOperatorCamera();
   currentPage = page;
   syncRolePermissions();
   document.querySelectorAll(".nav-item[data-page]").forEach(el=>{
@@ -2548,6 +2557,193 @@ function takeDemoPhoto(stepIdx) {
   showToast('📸 '+localText('已拍攝照片 ','Photo captured ','Đã chụp ảnh ')+(isBad?'(NG)':'(OK)'), isBad?'warn':'ok');
   if (currentPage === 'sop') renderSOPDetail();
 }
+
+let operatorCameraState = {
+  stream:null,
+  timer:null,
+  lastFrame:null,
+  stepIdx:null,
+  facingMode:'environment',
+  lastAlertAt:0
+};
+function operatorMonitorHtml(stepIdx, step) {
+  return '<div class="panel" style="padding:18px;margin-bottom:14px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px">' +
+      '<div><div style="font-weight:800">🎥 '+localText('AI 作業員動作監督','AI operator motion monitor','AI giám sát thao tác nhân viên')+'</div>' +
+      '<div style="font-size:12px;color:var(--c-mute);margin-top:3px">'+localText('鏡頭保持開啟，持續分析站位、手部動作與步驟節奏。','Camera stays on to analyze position, hand motion and step pace.','Camera luôn bật để phân tích vị trí, thao tác tay và nhịp bước.')+'</div></div>' +
+      '<span class="badge b-info">⏱ '+((step && step.duration) || 5)+' min</span>' +
+    '</div>' +
+    '<div class="operator-camera-stage">' +
+      '<video id="operatorCameraVideo" autoplay playsinline muted></video>' +
+      '<canvas id="operatorMotionCanvas" width="96" height="72" style="display:none"></canvas>' +
+      '<div id="operatorCameraOverlay" class="operator-camera-overlay">'+localText('等待相機權限','Waiting for camera permission','Đang chờ quyền camera')+'</div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px">' +
+      '<div id="operatorMotionStatus" style="font-size:13px;font-weight:800">'+localText('AI 監督準備中','AI monitor ready','AI đang chuẩn bị giám sát')+'</div>' +
+      '<span id="operatorMotionScore" class="badge b-info">0%</span>' +
+    '</div>' +
+    '<div class="motion-meter" style="margin-top:8px"><span id="operatorMotionBar"></span></div>' +
+    '<div class="motion-grid">' +
+      '<div class="motion-chip" id="operatorPostureChip">站位：--</div>' +
+      '<div class="motion-chip" id="operatorHandChip">手部：--</div>' +
+      '<div class="motion-chip" id="operatorPaceChip">節奏：--</div>' +
+      '<div class="motion-chip" id="operatorSafetyChip">安全：--</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:10px">' +
+      '<button class="btn btn-primary" style="flex:1;justify-content:center" onclick="startOperatorCamera(true)">🎥 '+localText('啟動鏡頭','Start camera','Bật camera')+'</button>' +
+      '<button class="btn btn-ghost" style="justify-content:center" onclick="switchOperatorCamera()">↔ '+localText('切換','Switch','Đổi')+'</button>' +
+    '</div>' +
+  '</div>';
+}
+function ensureOperatorCamera(stepIdx) {
+  operatorCameraState.stepIdx = stepIdx;
+  if (currentPage !== 'sop') return;
+  if (operatorCameraState.stream) {
+    attachOperatorCameraStream();
+    startOperatorAnalysis();
+    return;
+  }
+  startOperatorCamera(false);
+}
+async function startOperatorCamera(forcePrompt) {
+  operatorCameraState.stepIdx = sopState.current;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    updateOperatorMonitor('bad', localText('此瀏覽器不支援即時鏡頭','Live camera is not supported in this browser','Trình duyệt này không hỗ trợ camera trực tiếp'), 0);
+    return;
+  }
+  if (operatorCameraState.stream) {
+    attachOperatorCameraStream();
+    startOperatorAnalysis();
+    return;
+  }
+  updateOperatorMonitor('info', localText('正在開啟 iPad 鏡頭...','Opening iPad camera...','Đang mở camera iPad...'), 0);
+  try {
+    const constraints = {
+      video:{facingMode:{ideal:operatorCameraState.facingMode}, width:{ideal:1280}, height:{ideal:720}},
+      audio:false
+    };
+    try {
+      operatorCameraState.stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (firstErr) {
+      operatorCameraState.stream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
+    }
+    attachOperatorCameraStream();
+    startOperatorAnalysis();
+    updateOperatorMonitor('ok', localText('鏡頭已開啟，AI 正在分析作業員動作','Camera on, AI analyzing operator motion','Camera đã bật, AI đang phân tích thao tác'), 0);
+  } catch (err) {
+    const msg = forcePrompt
+      ? localText('無法開啟鏡頭，請允許相機權限後再試一次','Could not open camera. Allow camera permission and try again.','Không mở được camera. Vui lòng cấp quyền camera rồi thử lại.')
+      : localText('請按「啟動鏡頭」並允許相機權限','Tap Start camera and allow camera permission','Nhấn Bật camera và cấp quyền camera');
+    updateOperatorMonitor('warn', msg, 0);
+  }
+}
+function attachOperatorCameraStream() {
+  const video = document.getElementById('operatorCameraVideo');
+  if (!video || !operatorCameraState.stream) return;
+  if (video.srcObject !== operatorCameraState.stream) video.srcObject = operatorCameraState.stream;
+  video.setAttribute('playsinline', '');
+  video.muted = true;
+  const play = video.play();
+  if (play && play.catch) play.catch(function(){});
+}
+function startOperatorAnalysis() {
+  if (operatorCameraState.timer) clearInterval(operatorCameraState.timer);
+  operatorCameraState.timer = setInterval(analyzeOperatorFrame, 700);
+  analyzeOperatorFrame();
+}
+function analyzeOperatorFrame() {
+  if (currentPage !== 'sop' || !operatorCameraState.stream) return;
+  const video = document.getElementById('operatorCameraVideo');
+  const canvas = document.getElementById('operatorMotionCanvas');
+  if (!video || !canvas || video.readyState < 2) {
+    updateOperatorMonitor('info', localText('鏡頭連線中，等待影像...','Camera connecting, waiting for video...','Đang kết nối camera, chờ hình ảnh...'), 0);
+    return;
+  }
+  const ctx = canvas.getContext('2d', {willReadFrequently:true});
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  let diff = 0;
+  if (operatorCameraState.lastFrame) {
+    for (let i=0; i<data.length; i+=16) {
+      diff += Math.abs(data[i] - operatorCameraState.lastFrame[i]) +
+        Math.abs(data[i+1] - operatorCameraState.lastFrame[i+1]) +
+        Math.abs(data[i+2] - operatorCameraState.lastFrame[i+2]);
+    }
+    diff = diff / (data.length / 16) / 7.65;
+  }
+  operatorCameraState.lastFrame = new Uint8ClampedArray(data);
+  const motion = Math.max(0, Math.min(100, Math.round(diff)));
+  let kind = 'ok';
+  let label = localText('動作穩定，符合目前 SOP 節奏','Motion stable, aligned with SOP pace','Thao tác ổn định, phù hợp nhịp SOP');
+  if (motion < 4) {
+    kind = 'info';
+    label = localText('低動作量：確認作業員仍在監督範圍','Low motion: confirm operator remains in view','Ít chuyển động: xác nhận nhân viên còn trong khung hình');
+  } else if (motion > 45) {
+    kind = 'warn';
+    label = localText('偵測到大幅動作，請確認是否為異常操作','Large motion detected, verify operation','Phát hiện chuyển động lớn, vui lòng kiểm tra thao tác');
+    maybeAddOperatorMotionEvent(motion);
+  } else if (motion > 22) {
+    label = localText('作業動作中，AI 持續比對 SOP','Operator active, AI comparing with SOP','Đang thao tác, AI tiếp tục đối chiếu SOP');
+  }
+  updateOperatorMonitor(kind, label, motion);
+}
+function updateOperatorMonitor(kind, label, motion) {
+  const overlay = document.getElementById('operatorCameraOverlay');
+  const status = document.getElementById('operatorMotionStatus');
+  const score = document.getElementById('operatorMotionScore');
+  const bar = document.getElementById('operatorMotionBar');
+  const cls = kind === 'ok' ? 'b-ok' : kind === 'warn' ? 'b-warn' : kind === 'bad' ? 'b-bad' : 'b-info';
+  if (overlay) overlay.textContent = label;
+  if (status) status.textContent = label;
+  if (score) { score.className = 'badge '+cls; score.textContent = motion + '%'; }
+  if (bar) {
+    bar.style.width = motion + '%';
+    bar.style.background = kind === 'warn' ? '#f59e0b' : kind === 'bad' ? '#ef4444' : kind === 'ok' ? '#168a4a' : '#d6282f';
+  }
+  const posture = document.getElementById('operatorPostureChip');
+  const hand = document.getElementById('operatorHandChip');
+  const pace = document.getElementById('operatorPaceChip');
+  const safety = document.getElementById('operatorSafetyChip');
+  if (posture) posture.textContent = localText('站位：畫面內','Position: in frame','Vị trí: trong khung');
+  if (hand) hand.textContent = motion > 12 ? localText('手部：操作中','Hands: active','Tay: đang thao tác') : localText('手部：待確認','Hands: checking','Tay: đang kiểm tra');
+  if (pace) pace.textContent = motion > 45 ? localText('節奏：偏快','Pace: fast','Nhịp: nhanh') : localText('節奏：正常','Pace: normal','Nhịp: bình thường');
+  if (safety) safety.textContent = kind === 'warn' ? localText('安全：需確認','Safety: verify','An toàn: cần kiểm tra') : localText('安全：監督中','Safety: monitoring','An toàn: đang giám sát');
+}
+function maybeAddOperatorMotionEvent(motion) {
+  const now = Date.now();
+  if (now - operatorCameraState.lastAlertAt < 12000) return;
+  operatorCameraState.lastAlertAt = now;
+  STATE.aiEvents.unshift({
+    t:nowHHMM(),
+    engZh:'作業員動作分析',
+    engEn:'Operator Motion Analysis',
+    engVi:'Phân tích thao tác nhân viên',
+    sev:'med',
+    msgZh:'SOP 步驟 '+(sopState.current+1)+' 偵測到大幅動作，動作量 '+motion+'%',
+    msgEn:'SOP step '+(sopState.current+1)+' large motion detected, motion '+motion+'%',
+    msgVi:'Bước SOP '+(sopState.current+1)+' phát hiện chuyển động lớn, mức '+motion+'%',
+    c:Math.max(90, 100 - Math.round(motion/3))
+  });
+  if (STATE.aiEvents.length > 25) STATE.aiEvents.pop();
+  ssPersist();
+}
+function switchOperatorCamera() {
+  operatorCameraState.facingMode = operatorCameraState.facingMode === 'environment' ? 'user' : 'environment';
+  stopOperatorCamera(false);
+  startOperatorCamera(true);
+}
+function stopOperatorCamera(showStatus) {
+  if (operatorCameraState.timer) clearInterval(operatorCameraState.timer);
+  operatorCameraState.timer = null;
+  operatorCameraState.lastFrame = null;
+  if (operatorCameraState.stream) {
+    operatorCameraState.stream.getTracks().forEach(function(track){ track.stop(); });
+  }
+  operatorCameraState.stream = null;
+  const video = document.getElementById('operatorCameraVideo');
+  if (video) video.srcObject = null;
+  if (showStatus !== false) updateOperatorMonitor('info', localText('鏡頭已暫停','Camera paused','Camera đã tạm dừng'), 0);
+}
 function viewPhoto(stepIdx, photoIdx) {
   const p = STATE.photos['step_'+stepIdx][photoIdx];
   if (!p) return;
@@ -2993,9 +3189,10 @@ window.renderSOPDetail = function() {
           '<button class="btn btn-success" onclick="sopComplete()" '+(!allChecked?'disabled style="opacity:.5;cursor:not-allowed"':'')+'>✓ '+t('sop.complete')+'</button>' +
           '<button class="btn btn-primary" onclick="sopNext()" '+(i===SOP_STEPS.length-1?'disabled style="opacity:.4"':'')+'>'+t('sop.next')+' →</button>' +
         '</div></div></div>' +
-      // Right column
-      '<div>' +
-        '<div class="panel" style="padding:18px;margin-bottom:14px">' +
+	      // Right column
+	      '<div>' +
+	        operatorMonitorHtml(i, s) +
+	        '<div class="panel" style="padding:18px;margin-bottom:14px">' +
           '<div style="font-weight:700;margin-bottom:8px">📄 '+localText('關聯表單','Linked form','Biểu mẫu liên quan')+'</div>' +
           '<div style="font-size:13px;color:var(--c-mute);margin-bottom:10px">'+byLang(s,'form')+'</div>' +
           (formSaved ? '<div class="badge b-ok" style="margin-bottom:8px">✓ '+localText('已簽核 ','Signed ','Đã ký ')+formSaved._signedAt+'</div>' : '') +
@@ -3022,10 +3219,11 @@ window.renderSOPDetail = function() {
         '</div>' +
       '</div>' +
     '</div>';
-  document.getElementById("sopDetail").innerHTML = html;
-  applyI18n();
+	  document.getElementById("sopDetail").innerHTML = html;
+	  applyI18n();
+	  setTimeout(function(){ ensureOperatorCamera(i); }, 80);
 
-  const noteEl = document.getElementById('sopNote');
+	  const noteEl = document.getElementById('sopNote');
   if (noteEl) noteEl.addEventListener('input', function(e) {
     if (!sopState.notes) sopState.notes = SOP_STEPS.map(function(){return ''});
     sopState.notes[i] = e.target.value;

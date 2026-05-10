@@ -2603,11 +2603,10 @@ function operatorMonitorHtml(stepIdx, step) {
       '<div class="motion-chip" id="operatorPaceChip">節奏：--</div>' +
       '<div class="motion-chip" id="operatorSafetyChip">安全：--</div>' +
     '</div>' +
-    '<div style="display:flex;gap:8px;margin-top:10px">' +
-      '<button class="btn btn-primary" style="flex:1;justify-content:center" onclick="startOperatorCamera(true)">🎥 '+localText('啟動鏡頭','Start camera','Bật camera')+'</button>' +
-      '<button class="btn btn-ghost" style="justify-content:center" onclick="switchOperatorCamera()">↔ '+localText('切換','Switch','Đổi')+'</button>' +
-    '</div>' +
-  '</div>';
+	    '<div style="display:flex;gap:8px;margin-top:10px">' +
+	      '<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="startOperatorCamera(true)">🎥 '+localText('啟動鏡頭','Start camera','Bật camera')+'</button>' +
+	    '</div>' +
+	  '</div>';
 }
 function ensureOperatorCamera(stepIdx) {
   operatorCameraState.stepIdx = stepIdx;
@@ -2905,11 +2904,6 @@ function maybeAddOperatorMotionEvent(motion) {
   });
   if (STATE.aiEvents.length > 25) STATE.aiEvents.pop();
   ssPersist();
-}
-function switchOperatorCamera() {
-  operatorCameraState.facingMode = operatorCameraState.facingMode === 'environment' ? 'user' : 'environment';
-  stopOperatorCamera(false);
-  startOperatorCamera(true);
 }
 function stopOperatorCamera(showStatus) {
   if (operatorCameraState.timer) clearInterval(operatorCameraState.timer);

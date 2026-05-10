@@ -11,6 +11,11 @@
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.22.0/dist/tf-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@4.22.0/dist/tf-converter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.22.0/dist/tf-backend-webgl.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu@4.22.0/dist/tf-backend-cpu.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
 <style>
   :root{
     --c-bg:#ffffff; --c-bg2:#f7f7f7; --c-panel:#ffffff; --c-panel2:#f9f9f9;
@@ -100,6 +105,7 @@
   .brand-name-line,.brand-tag{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .operator-camera-stage{position:relative;aspect-ratio:4/3;background:#f7f7f7;border:1px solid var(--c-line);border-radius:10px;overflow:hidden}
   .operator-camera-stage video{width:100%;height:100%;object-fit:cover;background:#fff}
+  .operator-pose-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .operator-camera-overlay{position:absolute;left:8px;right:8px;bottom:8px;padding:7px 9px;border:1px solid #111;border-radius:8px;background:rgba(255,255,255,.92);color:#111;font-size:11px;font-weight:700}
   .motion-meter{height:8px;border-radius:999px;background:#f2f2f2;border:1px solid #111;overflow:hidden}
   .motion-meter>span{display:block;height:100%;width:0;background:#d6282f;transition:width .25s}
@@ -2562,9 +2568,15 @@ let operatorCameraState = {
   stream:null,
   timer:null,
   lastFrame:null,
+  lastPose:null,
   stepIdx:null,
   facingMode:'environment',
-  lastAlertAt:0
+  lastAlertAt:0,
+  poseDetector:null,
+  poseLoading:false,
+  poseReady:false,
+  poseBusy:false,
+  poseError:false
 };
 function operatorMonitorHtml(stepIdx, step) {
   return '<div class="panel" style="padding:18px;margin-bottom:14px">' +
@@ -2576,6 +2588,7 @@ function operatorMonitorHtml(stepIdx, step) {
     '<div class="operator-camera-stage">' +
       '<video id="operatorCameraVideo" autoplay playsinline muted></video>' +
       '<canvas id="operatorMotionCanvas" width="96" height="72" style="display:none"></canvas>' +
+      '<canvas id="operatorPoseCanvas" class="operator-pose-canvas"></canvas>' +
       '<div id="operatorCameraOverlay" class="operator-camera-overlay">'+localText('等待相機權限','Waiting for camera permission','Đang chờ quyền camera')+'</div>' +
     '</div>' +
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px">' +
@@ -2584,6 +2597,7 @@ function operatorMonitorHtml(stepIdx, step) {
     '</div>' +
     '<div class="motion-meter" style="margin-top:8px"><span id="operatorMotionBar"></span></div>' +
     '<div class="motion-grid">' +
+      '<div class="motion-chip" id="operatorPoseChip">骨架：--</div>' +
       '<div class="motion-chip" id="operatorPostureChip">站位：--</div>' +
       '<div class="motion-chip" id="operatorHandChip">手部：--</div>' +
       '<div class="motion-chip" id="operatorPaceChip">節奏：--</div>' +
@@ -2648,10 +2662,44 @@ function attachOperatorCameraStream() {
 }
 function startOperatorAnalysis() {
   if (operatorCameraState.timer) clearInterval(operatorCameraState.timer);
-  operatorCameraState.timer = setInterval(analyzeOperatorFrame, 700);
+  loadOperatorPoseModel();
+  operatorCameraState.timer = setInterval(analyzeOperatorFrame, 450);
   analyzeOperatorFrame();
 }
-function analyzeOperatorFrame() {
+async function loadOperatorPoseModel() {
+  if (operatorCameraState.poseDetector || operatorCameraState.poseLoading || operatorCameraState.poseError) return;
+  if (!window.tf || !window.poseDetection) {
+    operatorCameraState.poseError = true;
+    return;
+  }
+  operatorCameraState.poseLoading = true;
+  updateOperatorPoseChip(localText('骨架：模型載入中','Pose: loading model','Khung xương: đang tải mô hình'));
+  try {
+    try {
+      await tf.setBackend('webgl');
+    } catch (backendErr) {
+      await tf.setBackend('cpu');
+    }
+    await tf.ready();
+    const model = poseDetection.SupportedModels.MoveNet;
+    operatorCameraState.poseDetector = await poseDetection.createDetector(model, {
+      modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+      enableSmoothing:true
+    });
+    operatorCameraState.poseReady = true;
+    updateOperatorPoseChip(localText('骨架：MoveNet 已啟用','Pose: MoveNet enabled','Khung xương: MoveNet đã bật'));
+  } catch (err) {
+    operatorCameraState.poseError = true;
+    updateOperatorPoseChip(localText('骨架：模型未載入，使用動作量備援','Pose: model unavailable, using motion fallback','Khung xương: không tải được, dùng phân tích chuyển động'));
+  } finally {
+    operatorCameraState.poseLoading = false;
+  }
+}
+function updateOperatorPoseChip(text) {
+  const poseChip = document.getElementById('operatorPoseChip');
+  if (poseChip) poseChip.textContent = text;
+}
+async function analyzeOperatorFrame() {
   if (currentPage !== 'sop' || !operatorCameraState.stream) return;
   const video = document.getElementById('operatorCameraVideo');
   const canvas = document.getElementById('operatorMotionCanvas');
@@ -2686,6 +2734,137 @@ function analyzeOperatorFrame() {
     label = localText('作業動作中，AI 持續比對 SOP','Operator active, AI comparing with SOP','Đang thao tác, AI tiếp tục đối chiếu SOP');
   }
   updateOperatorMonitor(kind, label, motion);
+  if (operatorCameraState.poseReady && operatorCameraState.poseDetector && !operatorCameraState.poseBusy) {
+    operatorCameraState.poseBusy = true;
+    try {
+      const poses = await operatorCameraState.poseDetector.estimatePoses(video, {maxPoses:1, flipHorizontal:false});
+      analyzeOperatorPose(poses && poses[0], motion, video);
+    } catch (err) {
+      operatorCameraState.poseError = true;
+      updateOperatorPoseChip(localText('骨架：分析暫停，使用動作量備援','Pose: paused, using motion fallback','Khung xương: tạm dừng, dùng phân tích chuyển động'));
+    } finally {
+      operatorCameraState.poseBusy = false;
+    }
+  } else if (!operatorCameraState.poseReady && !operatorCameraState.poseLoading) {
+    clearOperatorPoseCanvas();
+  }
+}
+const OPERATOR_POSE_LINKS = [
+  ['left_shoulder','right_shoulder','#22c55e'], ['left_shoulder','left_elbow','#22c55e'], ['left_elbow','left_wrist','#22c55e'],
+  ['right_shoulder','right_elbow','#22c55e'], ['right_elbow','right_wrist','#22c55e'], ['left_shoulder','left_hip','#22c55e'],
+  ['right_shoulder','right_hip','#22c55e'], ['left_hip','right_hip','#22c55e'], ['left_hip','left_knee','#d6282f'],
+  ['left_knee','left_ankle','#d6282f'], ['right_hip','right_knee','#d6282f'], ['right_knee','right_ankle','#d6282f']
+];
+function posePoint(pose, name, minScore) {
+  if (!pose || !pose.keypoints) return null;
+  const p = pose.keypoints.find(function(k){ return k.name === name; });
+  return p && (p.score == null || p.score >= (minScore || 0.25)) ? p : null;
+}
+function clearOperatorPoseCanvas() {
+  const canvas = document.getElementById('operatorPoseCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width || 1, canvas.height || 1);
+}
+function drawOperatorPose(pose, video) {
+  const canvas = document.getElementById('operatorPoseCanvas');
+  if (!canvas || !video) return;
+  const w = video.videoWidth || 640;
+  const h = video.videoHeight || 480;
+  if (canvas.width !== w) canvas.width = w;
+  if (canvas.height !== h) canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  if (!pose || !pose.keypoints) return;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  OPERATOR_POSE_LINKS.forEach(function(link) {
+    const a = posePoint(pose, link[0], 0.28);
+    const b = posePoint(pose, link[1], 0.28);
+    if (!a || !b) return;
+    ctx.strokeStyle = link[2];
+    ctx.lineWidth = Math.max(4, w / 150);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  });
+  pose.keypoints.forEach(function(p) {
+    if (p.score != null && p.score < 0.28) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = Math.max(2, w / 360);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(4, w / 130), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+function poseShiftScore(pose, video) {
+  if (!operatorCameraState.lastPose || !pose || !pose.keypoints) return 0;
+  const base = Math.max(video.videoWidth || 640, video.videoHeight || 480);
+  let total = 0, count = 0;
+  pose.keypoints.forEach(function(p) {
+    if (p.score != null && p.score < 0.28) return;
+    const prev = operatorCameraState.lastPose.keypoints.find(function(k){ return k.name === p.name && (k.score == null || k.score >= 0.28); });
+    if (!prev) return;
+    const dx = p.x - prev.x;
+    const dy = p.y - prev.y;
+    total += Math.sqrt(dx * dx + dy * dy);
+    count++;
+  });
+  return count ? Math.min(100, (total / count / base) * 420) : 0;
+}
+function analyzeOperatorPose(pose, motion, video) {
+  drawOperatorPose(pose, video);
+  if (!pose || !pose.keypoints) {
+    updateOperatorPoseChip(localText('骨架：未偵測到人體','Pose: no person detected','Khung xương: chưa phát hiện người'));
+    return;
+  }
+  const visible = pose.keypoints.filter(function(p){ return p.score == null || p.score >= 0.28; }).length;
+  const poseScore = Math.round((visible / Math.max(1, pose.keypoints.length)) * 100);
+  const poseMove = poseShiftScore(pose, video);
+  const combinedMotion = Math.max(motion, Math.round(poseMove));
+  const leftShoulder = posePoint(pose, 'left_shoulder', 0.28);
+  const rightShoulder = posePoint(pose, 'right_shoulder', 0.28);
+  const leftHip = posePoint(pose, 'left_hip', 0.28);
+  const rightHip = posePoint(pose, 'right_hip', 0.28);
+  const leftWrist = posePoint(pose, 'left_wrist', 0.28);
+  const rightWrist = posePoint(pose, 'right_wrist', 0.28);
+  const leftKnee = posePoint(pose, 'left_knee', 0.28);
+  const rightKnee = posePoint(pose, 'right_knee', 0.28);
+  const leftAnkle = posePoint(pose, 'left_ankle', 0.28);
+  const rightAnkle = posePoint(pose, 'right_ankle', 0.28);
+  const torsoVisible = !!(leftShoulder && rightShoulder && leftHip && rightHip);
+  const fullBody = torsoVisible && !!((leftKnee || rightKnee) && (leftAnkle || rightAnkle));
+  const shoulderY = leftShoulder && rightShoulder ? (leftShoulder.y + rightShoulder.y) / 2 : null;
+  const handRaised = shoulderY != null && ((leftWrist && leftWrist.y < shoulderY) || (rightWrist && rightWrist.y < shoulderY));
+  let kind = 'ok';
+  let label = localText('骨架追蹤中：動作穩定，符合 SOP 節奏','Pose tracking: motion stable, aligned with SOP pace','Đang theo dõi khung xương: thao tác ổn định, phù hợp SOP');
+  if (poseScore < 38 || !torsoVisible) {
+    kind = 'warn';
+    label = localText('骨架不完整：請調整鏡頭角度或距離','Pose incomplete: adjust camera angle or distance','Khung xương chưa đủ: chỉnh góc hoặc khoảng cách camera');
+  } else if (combinedMotion > 58) {
+    kind = 'warn';
+    label = localText('骨架偵測到大幅動作，AI 建議主管確認','Large skeletal motion detected, supervisor check suggested','Phát hiện chuyển động khung xương lớn, đề nghị kiểm tra');
+    maybeAddOperatorMotionEvent(combinedMotion);
+  } else if (handRaised || combinedMotion > 26) {
+    kind = 'ok';
+    label = localText('作業動作中：手部與身體姿態持續比對 SOP','Operator active: hands and posture matching SOP','Đang thao tác: tay và tư thế được đối chiếu SOP');
+  }
+  updateOperatorMonitor(kind, label, combinedMotion);
+  updateOperatorPoseChip(localText('骨架：','Pose: ','Khung xương: ')+visible+'/'+pose.keypoints.length+' · '+poseScore+'%');
+  const posture = document.getElementById('operatorPostureChip');
+  const hand = document.getElementById('operatorHandChip');
+  const pace = document.getElementById('operatorPaceChip');
+  const safety = document.getElementById('operatorSafetyChip');
+  if (posture) posture.textContent = fullBody ? localText('站位：全身入鏡','Position: full body','Vị trí: toàn thân') : torsoVisible ? localText('站位：上半身入鏡','Position: upper body','Vị trí: nửa thân trên') : localText('站位：需調整','Position: adjust','Vị trí: cần chỉnh');
+  if (hand) hand.textContent = handRaised ? localText('手部：抬手/取放','Hands: reach/place','Tay: với/đặt') : combinedMotion > 18 ? localText('手部：操作中','Hands: active','Tay: đang thao tác') : localText('手部：穩定','Hands: stable','Tay: ổn định');
+  if (pace) pace.textContent = combinedMotion > 58 ? localText('節奏：過快','Pace: too fast','Nhịp: quá nhanh') : combinedMotion > 28 ? localText('節奏：操作中','Pace: active','Nhịp: đang thao tác') : localText('節奏：穩定','Pace: stable','Nhịp: ổn định');
+  if (safety) safety.textContent = kind === 'warn' ? localText('安全：需確認','Safety: verify','An toàn: cần kiểm tra') : localText('安全：姿勢正常','Safety: posture OK','An toàn: tư thế OK');
+  operatorCameraState.lastPose = {
+    keypoints: pose.keypoints.map(function(p){ return {name:p.name, x:p.x, y:p.y, score:p.score}; })
+  };
 }
 function updateOperatorMonitor(kind, label, motion) {
   const overlay = document.getElementById('operatorCameraOverlay');
@@ -2736,12 +2915,15 @@ function stopOperatorCamera(showStatus) {
   if (operatorCameraState.timer) clearInterval(operatorCameraState.timer);
   operatorCameraState.timer = null;
   operatorCameraState.lastFrame = null;
+  operatorCameraState.lastPose = null;
+  operatorCameraState.poseBusy = false;
   if (operatorCameraState.stream) {
     operatorCameraState.stream.getTracks().forEach(function(track){ track.stop(); });
   }
   operatorCameraState.stream = null;
   const video = document.getElementById('operatorCameraVideo');
   if (video) video.srcObject = null;
+  clearOperatorPoseCanvas();
   if (showStatus !== false) updateOperatorMonitor('info', localText('鏡頭已暫停','Camera paused','Camera đã tạm dừng'), 0);
 }
 function viewPhoto(stepIdx, photoIdx) {

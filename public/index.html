@@ -112,6 +112,9 @@
   .motion-meter>span{display:block;height:100%;width:0;background:#d6282f;transition:width .25s}
   .motion-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
   .motion-chip{padding:8px;border:1px solid #111;border-radius:8px;background:#fff;font-size:11px;font-weight:700;color:#111}
+  .operator-insight{margin-top:10px;padding:10px;border:1px solid #111;border-radius:8px;background:#fff7f7}
+  .operator-insight-title{font-size:11px;font-weight:800;color:#d6282f;margin-bottom:4px}
+  .operator-insight-body{font-size:12px;line-height:1.45;color:#111;font-weight:700}
   .context-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:10px 12px;margin-bottom:14px;align-items:stretch}
   @media(max-width:1180px){.sop-detail-layout{grid-template-columns:1fr}.operator-camera-stage{min-height:340px}}
   @media(max-width:900px){.context-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -2602,11 +2605,21 @@ function operatorMonitorHtml(stepIdx, step) {
 	      '<div class="motion-chip" id="operatorPersonChip">人體：--</div>' +
 	      '<div class="motion-chip" id="operatorPoseChip">骨架：--</div>' +
 	      '<div class="motion-chip" id="operatorPostureChip">站位：--</div>' +
-      '<div class="motion-chip" id="operatorHandChip">手部：--</div>' +
-      '<div class="motion-chip" id="operatorPaceChip">節奏：--</div>' +
-      '<div class="motion-chip" id="operatorSafetyChip">安全：--</div>' +
-    '</div>' +
-	    '<div style="display:flex;gap:8px;margin-top:10px">' +
+	      '<div class="motion-chip" id="operatorHandChip">手部：--</div>' +
+	      '<div class="motion-chip" id="operatorPaceChip">節奏：--</div>' +
+	      '<div class="motion-chip" id="operatorSafetyChip">安全：--</div>' +
+	      '<div class="motion-chip" id="operatorModelChip">模型：--</div>' +
+	      '<div class="motion-chip" id="operatorJointChip">關節：--</div>' +
+	      '<div class="motion-chip" id="operatorTorsoChip">軀幹：--</div>' +
+	      '<div class="motion-chip" id="operatorFullBodyChip">全身：--</div>' +
+	      '<div class="motion-chip" id="operatorRiskChip">風險：--</div>' +
+	      '<div class="motion-chip" id="operatorUpdatedChip">更新：--</div>' +
+	    '</div>' +
+	    '<div class="operator-insight">' +
+	      '<div class="operator-insight-title">🤖 '+localText('AI 即時建議','AI live suggestion','Gợi ý AI tức thời')+'</div>' +
+	      '<div id="operatorAdviceText" class="operator-insight-body">'+localText('等待鏡頭與人體辨識資料。','Waiting for camera and person detection data.','Đang chờ dữ liệu camera và nhận diện người.')+'</div>' +
+	    '</div>' +
+		    '<div style="display:flex;gap:8px;margin-top:10px">' +
 	      '<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="startOperatorCamera(true)">🎥 '+localText('啟動鏡頭','Start camera','Bật camera')+'</button>' +
 	    '</div>' +
 	  '</div>';
@@ -2676,6 +2689,8 @@ async function loadOperatorPoseModel() {
   }
   operatorCameraState.poseLoading = true;
   updateOperatorPoseChip(localText('骨架：模型載入中','Pose: loading model','Khung xương: đang tải mô hình'));
+  setOperatorChip('operatorModelChip', localText('模型：載入中','Model: loading','Mô hình: đang tải'));
+  updateOperatorAdvice(localText('正在載入 MoveNet 骨架模型，載入後會顯示人體關節與姿勢資訊。','Loading MoveNet pose model; joints and posture details will appear after loading.','Đang tải mô hình khung xương MoveNet; thông tin khớp và tư thế sẽ hiển thị sau khi tải.'));
   try {
     try {
       await tf.setBackend('webgl');
@@ -2690,9 +2705,12 @@ async function loadOperatorPoseModel() {
     });
     operatorCameraState.poseReady = true;
     updateOperatorPoseChip(localText('骨架：MoveNet 已啟用','Pose: MoveNet enabled','Khung xương: MoveNet đã bật'));
+    setOperatorChip('operatorModelChip', localText('模型：MoveNet','Model: MoveNet','Mô hình: MoveNet'));
   } catch (err) {
     operatorCameraState.poseError = true;
     updateOperatorPoseChip(localText('骨架：模型未載入，使用動作量備援','Pose: model unavailable, using motion fallback','Khung xương: không tải được, dùng phân tích chuyển động'));
+    setOperatorChip('operatorModelChip', localText('模型：動作量備援','Model: motion fallback','Mô hình: dự phòng chuyển động'));
+    updateOperatorAdvice(localText('骨架模型未載入，系統仍會用畫面動作量判斷是否有異常操作。','Pose model unavailable; motion analysis will still flag abnormal operation.','Không tải được mô hình khung xương; hệ thống vẫn dùng mức chuyển động để cảnh báo bất thường.'));
   } finally {
     operatorCameraState.poseLoading = false;
   }
@@ -2704,6 +2722,14 @@ function updateOperatorPoseChip(text) {
 function updateOperatorPersonChip(text) {
   const personChip = document.getElementById('operatorPersonChip');
   if (personChip) personChip.textContent = text;
+}
+function setOperatorChip(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+function updateOperatorAdvice(text) {
+  const el = document.getElementById('operatorAdviceText');
+  if (el) el.textContent = text;
 }
 async function analyzeOperatorFrame() {
   if (currentPage !== 'sop' || !operatorCameraState.stream) return;
@@ -2740,6 +2766,13 @@ async function analyzeOperatorFrame() {
     label = localText('作業動作中，AI 持續比對 SOP','Operator active, AI comparing with SOP','Đang thao tác, AI tiếp tục đối chiếu SOP');
   }
   updateOperatorMonitor(kind, label, motion);
+  setOperatorChip('operatorUpdatedChip', localText('更新：','Updated: ','Cập nhật: ')+nowHHMM());
+  if (!operatorCameraState.poseReady) {
+    setOperatorChip('operatorRiskChip', kind === 'warn' ? localText('風險：中','Risk: medium','Rủi ro: trung bình') : localText('風險：低','Risk: low','Rủi ro: thấp'));
+    updateOperatorAdvice(kind === 'warn'
+      ? localText('目前以動作量分析為主，偵測到較大畫面變化，建議確認作業員操作是否符合 SOP。','Motion fallback detected large visual change; verify the operator is following SOP.','Phân tích chuyển động phát hiện thay đổi lớn; nên xác nhận thao tác có đúng SOP.')
+      : localText('目前動作量穩定，請持續保持作業員在鏡頭視野內。','Motion is stable; keep the operator within the camera view.','Chuyển động ổn định; tiếp tục giữ nhân viên trong khung hình.'));
+  }
   if (operatorCameraState.poseReady && operatorCameraState.poseDetector && !operatorCameraState.poseBusy) {
     operatorCameraState.poseBusy = true;
     try {
@@ -2835,6 +2868,13 @@ function analyzeOperatorPose(pose, motion, video) {
     if (hand) hand.textContent = localText('手部：未偵測','Hands: not detected','Tay: chưa phát hiện');
     if (pace) pace.textContent = localText('節奏：無資料','Pace: no data','Nhịp: không có dữ liệu');
     if (safety) safety.textContent = localText('安全：需確認人員位置','Safety: verify operator position','An toàn: cần xác nhận vị trí nhân viên');
+    setOperatorChip('operatorModelChip', operatorCameraState.poseReady ? localText('模型：MoveNet','Model: MoveNet','Mô hình: MoveNet') : localText('模型：動作量備援','Model: motion fallback','Mô hình: dự phòng chuyển động'));
+    setOperatorChip('operatorJointChip', localText('關節：0/17','Joints: 0/17','Khớp: 0/17'));
+    setOperatorChip('operatorTorsoChip', localText('軀幹：未偵測','Torso: not detected','Thân: chưa phát hiện'));
+    setOperatorChip('operatorFullBodyChip', localText('全身：未偵測','Full body: not detected','Toàn thân: chưa phát hiện'));
+    setOperatorChip('operatorRiskChip', localText('風險：中','Risk: medium','Rủi ro: trung bình'));
+    setOperatorChip('operatorUpdatedChip', localText('更新：','Updated: ','Cập nhật: ')+nowHHMM());
+    updateOperatorAdvice(localText('請確認鏡頭對準作業區，讓作業員至少露出頭部、肩膀與手部，AI 才能判斷動作是否符合 SOP。','Aim the camera at the work area and keep the operator head, shoulders, and hands visible so AI can verify SOP motion.','Hãy hướng camera vào khu vực thao tác và để thấy đầu, vai, tay của nhân viên để AI kiểm tra thao tác theo SOP.'));
     return;
   }
   const visible = pose.keypoints.filter(function(p){ return p.score == null || p.score >= 0.28; }).length;
@@ -2881,6 +2921,17 @@ function analyzeOperatorPose(pose, motion, video) {
   if (hand) hand.textContent = handRaised ? localText('手部：抬手/取放','Hands: reach/place','Tay: với/đặt') : combinedMotion > 18 ? localText('手部：操作中','Hands: active','Tay: đang thao tác') : localText('手部：穩定','Hands: stable','Tay: ổn định');
   if (pace) pace.textContent = combinedMotion > 58 ? localText('節奏：過快','Pace: too fast','Nhịp: quá nhanh') : combinedMotion > 28 ? localText('節奏：操作中','Pace: active','Nhịp: đang thao tác') : localText('節奏：穩定','Pace: stable','Nhịp: ổn định');
   if (safety) safety.textContent = kind === 'warn' ? localText('安全：需確認','Safety: verify','An toàn: cần kiểm tra') : localText('安全：姿勢正常','Safety: posture OK','An toàn: tư thế OK');
+  setOperatorChip('operatorModelChip', localText('模型：MoveNet','Model: MoveNet','Mô hình: MoveNet'));
+  setOperatorChip('operatorJointChip', localText('關節：','Joints: ','Khớp: ')+visible+'/'+pose.keypoints.length);
+  setOperatorChip('operatorTorsoChip', torsoVisible ? localText('軀幹：已鎖定','Torso: locked','Thân: đã khóa') : localText('軀幹：不完整','Torso: incomplete','Thân: chưa đủ'));
+  setOperatorChip('operatorFullBodyChip', fullBody ? localText('全身：已入鏡','Full body: in frame','Toàn thân: trong khung') : localText('全身：部分入鏡','Full body: partial','Toàn thân: một phần'));
+  setOperatorChip('operatorRiskChip', kind === 'warn' ? localText('風險：中','Risk: medium','Rủi ro: trung bình') : localText('風險：低','Risk: low','Rủi ro: thấp'));
+  setOperatorChip('operatorUpdatedChip', localText('更新：','Updated: ','Cập nhật: ')+nowHHMM());
+  updateOperatorAdvice(kind === 'warn'
+    ? localText('AI 偵測到姿勢不完整或動作幅度偏大，建議主管確認作業員是否依 SOP 執行，並調整鏡頭距離。','AI detected incomplete pose or large motion. Supervisor should verify SOP compliance and adjust camera distance.','AI phát hiện tư thế chưa đủ hoặc chuyển động lớn; nên xác nhận thao tác đúng SOP và chỉnh khoảng cách camera.')
+    : handRaised
+      ? localText('偵測到手部取放/伸手動作，系統會持續比對目前 SOP 步驟節奏。','Reach/place hand motion detected; system will continue comparing against current SOP pace.','Phát hiện thao tác tay với/đặt; hệ thống tiếp tục đối chiếu nhịp SOP hiện tại.')
+      : localText('人體與骨架辨識穩定，目前姿勢與動作節奏正常。','Person and pose detection are stable; posture and pace look normal.','Nhận diện người và khung xương ổn định; tư thế và nhịp thao tác bình thường.'));
   operatorCameraState.lastPose = {
     keypoints: pose.keypoints.map(function(p){ return {name:p.name, x:p.x, y:p.y, score:p.score}; })
   };
@@ -2940,6 +2991,13 @@ function stopOperatorCamera(showStatus) {
   clearOperatorPoseCanvas();
   updateOperatorPersonChip(localText('人體：--','Person: --','Người: --'));
   updateOperatorPoseChip(localText('骨架：--','Pose: --','Khung xương: --'));
+  setOperatorChip('operatorModelChip', localText('模型：--','Model: --','Mô hình: --'));
+  setOperatorChip('operatorJointChip', localText('關節：--','Joints: --','Khớp: --'));
+  setOperatorChip('operatorTorsoChip', localText('軀幹：--','Torso: --','Thân: --'));
+  setOperatorChip('operatorFullBodyChip', localText('全身：--','Full body: --','Toàn thân: --'));
+  setOperatorChip('operatorRiskChip', localText('風險：--','Risk: --','Rủi ro: --'));
+  setOperatorChip('operatorUpdatedChip', localText('更新：--','Updated: --','Cập nhật: --'));
+  updateOperatorAdvice(localText('鏡頭已暫停，按「啟動鏡頭」後會重新開始人體與骨架分析。','Camera paused. Press Start camera to resume person and pose analysis.','Camera đã tạm dừng. Nhấn Bật camera để phân tích người và khung xương lại.'));
   if (showStatus !== false) updateOperatorMonitor('info', localText('鏡頭已暫停','Camera paused','Camera đã tạm dừng'), 0);
 }
 function viewPhoto(stepIdx, photoIdx) {

@@ -122,6 +122,11 @@
   .operator-insight{margin-top:10px;padding:10px;border:1px solid #111;border-radius:8px;background:#fff7f7}
   .operator-insight-title{font-size:11px;font-weight:800;color:#d6282f;margin-bottom:4px}
   .operator-insight-body{font-size:12px;line-height:1.45;color:#111;font-weight:700}
+  .param-source{display:grid;grid-template-columns:auto 1fr;gap:7px 8px;align-items:center;margin:0 0 10px;padding:9px 10px;border:1px solid #111;border-radius:8px;background:#fff7f7;color:#111}
+  .param-source-label{font-size:11px;font-weight:900;color:#d6282f;white-space:nowrap}
+  .param-source-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .param-source-chip{display:inline-flex;align-items:center;padding:3px 7px;border:1px solid #111;border-radius:999px;background:#fff;font-size:10px;font-weight:800}
+  .param-source-note{grid-column:1/-1;font-size:11px;line-height:1.45;font-weight:700;color:#111}
   .sop-photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .sop-photo-tile{height:92px;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
   .sop-photo-empty{background:var(--c-panel2);border:2px dashed var(--c-line);flex-direction:column;color:var(--c-mute);font-size:22px}
@@ -132,7 +137,7 @@
   @media(max-width:1180px){.sop-detail-layout{grid-template-columns:1fr}.operator-camera-stage{min-height:340px}}
   @media(max-width:900px){.context-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:720px){.online-pill{display:none!important}.header-lockup{flex-basis:220px}.brand-tag{display:none}}
-  @media(max-width:520px){.context-grid{grid-template-columns:1fr}.brand-logo.login{width:104px;height:64px}.brand-logo.header{width:58px;height:36px}.header-lockup{flex-basis:150px}.operator-camera-stage{min-height:270px}.sop-photo-tile{height:78px}}
+  @media(max-width:520px){.context-grid{grid-template-columns:1fr}.brand-logo.login{width:104px;height:64px}.brand-logo.header{width:58px;height:36px}.header-lockup{flex-basis:150px}.operator-camera-stage{min-height:270px}.param-source{grid-template-columns:1fr}.sop-photo-tile{height:78px}}
 </style>
 </head>
 <body>
@@ -475,6 +480,18 @@ const langSuffix = () => LANG === "vi" ? "Vi" : (LANG === "en" ? "En" : "Zh");
 const byLang = (obj, base) => obj ? (obj[base + langSuffix()] ?? obj[base + "En"] ?? obj[base + "Zh"] ?? "") : "";
 const optionText = (obj) => obj ? localText(obj.zh, obj.en, obj.vi) : "";
 const localeCode = () => LANG === "zh" ? "zh-TW" : (LANG === "vi" ? "vi-VN" : "en-US");
+function sopParamSourceHtml() {
+  const sources = [
+    localText("SOP 標準書", "SOP standard", "Tiêu chuẩn SOP"),
+    localText("設備紀錄", "Equipment record", "Hồ sơ thiết bị"),
+    localText("品管檢驗", "QC inspection", "Kiểm tra QC")
+  ];
+  return '<div class="param-source">' +
+    '<span class="param-source-label">' + localText("依據來源", "Source", "Nguồn dữ liệu") + '</span>' +
+    '<div class="param-source-chips">' + sources.map(function(source){ return '<span class="param-source-chip">' + source + '</span>'; }).join('') + '</div>' +
+    '<div class="param-source-note">' + localText("標準範圍與現場數值比對後自動判定 OK/NG。", "OK/NG is decided by comparing field values with standard ranges.", "OK/NG được xác định bằng cách so sánh giá trị hiện trường với phạm vi tiêu chuẩn.") + '</div>' +
+  '</div>';
+}
 function timeText(value) {
   const key = String(value || "").trim();
   const map = {
@@ -1248,6 +1265,7 @@ function renderSOPDetail(){
 
           <div style="margin-top:18px">
             <div style="font-weight:700;margin-bottom:10px" data-i18n="sop.params">製程參數</div>
+            ${sopParamSourceHtml()}
             <table class="tbl"><thead><tr><th>${t('common.event')}</th><th>${t('common.value')}</th><th>${t('common.target')}</th><th>${t('common.status')}</th></tr></thead><tbody>
               ${params.map(p=>`<tr><td><b>${p.k}</b></td><td>${p.v}</td><td style="color:var(--c-mute)">${p.t}</td><td>${p.ok?'<span class="badge b-ok">OK</span>':'<span class="badge b-bad">NG</span>'}</td></tr>`).join('')}
             </tbody></table>
@@ -3540,6 +3558,7 @@ window.renderSOPDetail = function() {
             }).join('') +
           '</div></div>' +
         '<div style="margin-top:18px"><div style="font-weight:700;margin-bottom:10px">'+t('sop.params')+'</div>' +
+          sopParamSourceHtml() +
           '<table class="tbl"><thead><tr><th>'+t('common.event')+'</th><th>'+t('common.value')+'</th><th>'+t('common.target')+'</th><th>'+t('common.status')+'</th></tr></thead><tbody>' +
           params.map(function(p){return '<tr><td><b>'+p.k+'</b></td><td>'+p.v+'</td><td style="color:var(--c-mute)">'+p.t+'</td><td>'+(p.ok?'<span class="badge b-ok">OK</span>':'<span class="badge b-bad">NG</span>')+'</td></tr>'}).join('') +
           '</tbody></table></div>' +

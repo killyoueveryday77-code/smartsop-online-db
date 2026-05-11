@@ -122,11 +122,17 @@
   .operator-insight{margin-top:10px;padding:10px;border:1px solid #111;border-radius:8px;background:#fff7f7}
   .operator-insight-title{font-size:11px;font-weight:800;color:#d6282f;margin-bottom:4px}
   .operator-insight-body{font-size:12px;line-height:1.45;color:#111;font-weight:700}
+  .sop-photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .sop-photo-tile{height:92px;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .sop-photo-empty{background:var(--c-panel2);border:2px dashed var(--c-line);flex-direction:column;color:var(--c-mute);font-size:22px}
+  .sop-photo-empty.wide{grid-column:span 2}
+  .sop-photo-sample{background:#fff;border:1px solid #111;color:#111;font-size:28px}
+  .sop-photo-thumb{background-size:cover;background-position:center;cursor:pointer;position:relative}
   .context-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:10px 12px;margin-bottom:14px;align-items:stretch}
   @media(max-width:1180px){.sop-detail-layout{grid-template-columns:1fr}.operator-camera-stage{min-height:340px}}
   @media(max-width:900px){.context-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:720px){.online-pill{display:none!important}.header-lockup{flex-basis:220px}.brand-tag{display:none}}
-  @media(max-width:520px){.context-grid{grid-template-columns:1fr}.brand-logo.login{width:104px;height:64px}.brand-logo.header{width:58px;height:36px}.header-lockup{flex-basis:150px}.operator-camera-stage{min-height:270px}}
+  @media(max-width:520px){.context-grid{grid-template-columns:1fr}.brand-logo.login{width:104px;height:64px}.brand-logo.header{width:58px;height:36px}.header-lockup{flex-basis:150px}.operator-camera-stage{min-height:270px}.sop-photo-tile{height:78px}}
 </style>
 </head>
 <body>
@@ -1272,9 +1278,9 @@ function renderSOPDetail(){
         </div>
         <div class="panel" style="padding:18px;margin-bottom:14px">
           <div style="font-weight:700;margin-bottom:10px" data-i18n="sop.attach">附加照片</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <div style="aspect-ratio:1;border-radius:10px;background:var(--c-panel2);border:2px dashed var(--c-line);display:flex;align-items:center;justify-content:center;color:var(--c-mute);font-size:24px">📷</div>
-            <div style="aspect-ratio:1;border-radius:10px;background:#fff;border:1px solid #111;display:flex;align-items:center;justify-content:center;color:#111;font-size:32px">🌾</div>
+          <div class="sop-photo-grid">
+            <div class="sop-photo-tile sop-photo-empty">📷</div>
+            <div class="sop-photo-tile sop-photo-sample">🌾</div>
           </div>
           <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="takePhoto(${i})">📸 ${localText('開啟 iPad 鏡頭 (AI 視覺判定)','Open iPad camera (AI vision)','Mở camera iPad (AI thị giác)')}</button>
         </div>
@@ -3505,9 +3511,9 @@ window.renderSOPDetail = function() {
   const formSaved = STATE.forms[sopState.batch] && STATE.forms[sopState.batch][formId];
 
   const photoHtml = photos.length === 0
-    ? '<div style="aspect-ratio:1;border-radius:10px;background:var(--c-panel2);border:2px dashed var(--c-line);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--c-mute);font-size:28px;grid-column:span 2">📷<div style="font-size:11px;margin-top:4px">'+localText('尚無照片','No photos','Chưa có ảnh')+'</div></div>'
+    ? '<div class="sop-photo-tile sop-photo-empty wide">📷<div style="font-size:11px;margin-top:4px">'+localText('尚無照片','No photos','Chưa có ảnh')+'</div></div>'
     : photos.map(function(p,pi){
-        return '<div style="aspect-ratio:1;border-radius:10px;background-image:url(\''+p.url+'\');background-size:cover;background-position:center;cursor:pointer;border:2px solid '+(p.isBad?'#ef4444':'#168a4a')+';position:relative" onclick="viewPhoto('+i+','+pi+')">' +
+        return '<div class="sop-photo-tile sop-photo-thumb" style="background-image:url(\''+p.url+'\');border:2px solid '+(p.isBad?'#ef4444':'#168a4a')+'" onclick="viewPhoto('+i+','+pi+')">' +
           '<div style="position:absolute;top:4px;right:4px;background:'+(p.isBad?'#ef4444':'#168a4a')+';color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px">'+(p.isBad?'NG':'OK')+'</div></div>';
       }).join('');
 
@@ -3557,7 +3563,7 @@ window.renderSOPDetail = function() {
         '</div>' +
         '<div class="panel" style="padding:18px;margin-bottom:14px">' +
           '<div style="font-weight:700;margin-bottom:10px">'+t('sop.attach')+(photos.length?' ('+photos.length+')':'')+'</div>' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+photoHtml+'</div>' +
+          '<div class="sop-photo-grid">'+photoHtml+'</div>' +
           '<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px" onclick="takePhoto('+i+')">📸 '+localText('開啟 iPad 鏡頭 (AI 視覺判定)','Open iPad camera (AI vision)','Mở camera iPad (AI thị giác)')+'</button>' +
         '</div>' +
         '<div class="panel" style="padding:18px">' +

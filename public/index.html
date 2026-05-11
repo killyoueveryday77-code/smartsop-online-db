@@ -57,6 +57,9 @@
   .step-tile.done{border-color:#168a4a;background:#f2fbf5}
   .step-tile.active{border-color:#111;background:#fff1f1;box-shadow:0 0 0 2px rgba(214,40,47,.22)}
   .step-tile.skip{border-color:#f59e0b;background:linear-gradient(135deg,rgba(245,158,11,.08),var(--c-panel2))}
+  .step-flow-row{display:flex;gap:8px;min-width:max-content}
+  .step-flow-row .step-tile{flex:0 0 152px;min-width:152px}
+  .step-title{font-size:13px;font-weight:700;margin-top:4px;line-height:1.25;white-space:nowrap}
   .gauge-bar{height:8px;border-radius:4px;background:var(--c-line);overflow:hidden}
   .gauge-bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--c-accent2),var(--c-accent))}
   table.tbl{width:100%;border-collapse:collapse;font-size:13px}
@@ -103,7 +106,10 @@
   .brand-logo.header{width:82px;height:50px;padding:4px;flex-shrink:0}
   .brand-text{min-width:0}
   .brand-name-line,.brand-tag{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sop-detail-layout{display:grid;grid-template-columns:minmax(0,1.28fr) minmax(430px,1fr);gap:14px}
+  .sop-detail-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  .sop-detail-layout>div{min-width:0}
+  .sop-detail-stack{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  .sop-detail-stack .panel{margin-bottom:0!important}
   .operator-camera-stage{position:relative;aspect-ratio:16/10;min-height:360px;background:#f7f7f7;border:1px solid var(--c-line);border-radius:10px;overflow:hidden}
   .operator-camera-stage video{width:100%;height:100%;object-fit:cover;background:#fff}
   .operator-pose-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
@@ -117,7 +123,7 @@
   .operator-camera-overlay{position:absolute;left:8px;right:8px;bottom:8px;padding:7px 9px;border:1px solid #111;border-radius:8px;background:rgba(255,255,255,.92);color:#111;font-size:11px;font-weight:700}
   .motion-meter{height:8px;border-radius:999px;background:#f2f2f2;border:1px solid #111;overflow:hidden}
   .motion-meter>span{display:block;height:100%;width:0;background:#d6282f;transition:width .25s}
-  .motion-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .motion-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:10px}
   .motion-chip{padding:8px;border:1px solid #111;border-radius:8px;background:#fff;font-size:11px;font-weight:700;color:#111}
   .operator-insight{margin-top:10px;padding:10px;border:1px solid #111;border-radius:8px;background:#fff7f7}
   .operator-insight-title{font-size:11px;font-weight:800;color:#d6282f;margin-bottom:4px}
@@ -1197,12 +1203,12 @@ function renderSOP(){
         <div style="font-size:12px;color:var(--c-mute)">${sopState.status.filter(s=>s==="done").length} / ${SOP_STEPS.length} ${localText("已完成","completed","đã hoàn thành")}</div>
       </div>
       <div class="scroll-x">
-        <div style="display:flex;gap:8px;min-width:1000px">
+        <div class="step-flow-row">
           ${SOP_STEPS.map((s,i)=>`
             <div class="step-tile ${sopState.status[i]==='done'?'done':sopState.status[i]==='active'?'active':sopState.status[i]==='skipped'?'skip':''}"
-                 style="flex:1;min-width:90px" onclick="sopGoto(${i})">
+                 onclick="sopGoto(${i})">
               <div style="font-size:10px;color:var(--c-mute);font-weight:700">STEP ${String(i+1).padStart(2,'0')}</div>
-              <div style="font-size:13px;font-weight:700;margin-top:4px;line-height:1.25">${byLang(s,"title")}</div>
+              <div class="step-title">${byLang(s,"title")}</div>
               <div style="margin-top:6px;font-size:11px">
                 ${sopState.status[i]==='done'?'<span class="badge b-ok">✓</span>': sopState.status[i]==='active'?'<span class="badge b-info">●</span>': sopState.status[i]==='skipped'?'<span class="badge b-warn">⤴</span>':'<span class="badge" style="background:#f2f2f2;color:var(--c-mute);border:1px solid var(--c-line)">○</span>'}
                 ${s.dangerous?'<span class="badge b-bad">⚠</span>':''}
@@ -3537,7 +3543,7 @@ window.renderSOPDetail = function() {
 
   const html =
     '<div class="sop-detail-layout">' +
-      '<div><div class="panel" style="padding:20px">' +
+      '<div class="sop-detail-primary"><div class="panel" style="padding:20px">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">' +
           '<div><div style="font-size:11px;color:var(--c-mute);font-weight:700;letter-spacing:1.5px">STEP '+String(i+1).padStart(2,'0')+' / '+SOP_STEPS.length+'</div>' +
           '<div style="font-size:22px;font-weight:800;margin-top:4px">'+byLang(s,'title')+'</div>' +
@@ -3572,7 +3578,7 @@ window.renderSOPDetail = function() {
           '<button class="btn btn-primary" onclick="sopNext()" '+(i===SOP_STEPS.length-1?'disabled style="opacity:.4"':'')+'>'+t('sop.next')+' →</button>' +
         '</div></div></div>' +
 	      // Right column
-	      '<div>' +
+	      '<div class="sop-detail-stack">' +
 	        operatorMonitorHtml(i, s) +
 	        '<div class="panel" style="padding:18px;margin-bottom:14px">' +
           '<div style="font-weight:700;margin-bottom:8px">📄 '+localText('關聯表單','Linked form','Biểu mẫu liên quan')+'</div>' +

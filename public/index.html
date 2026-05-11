@@ -2597,10 +2597,11 @@ function operatorMonitorHtml(stepIdx, step) {
       '<div id="operatorMotionStatus" style="font-size:13px;font-weight:800">'+localText('AI 監督準備中','AI monitor ready','AI đang chuẩn bị giám sát')+'</div>' +
       '<span id="operatorMotionScore" class="badge b-info">0%</span>' +
     '</div>' +
-    '<div class="motion-meter" style="margin-top:8px"><span id="operatorMotionBar"></span></div>' +
-    '<div class="motion-grid">' +
-      '<div class="motion-chip" id="operatorPoseChip">骨架：--</div>' +
-      '<div class="motion-chip" id="operatorPostureChip">站位：--</div>' +
+	    '<div class="motion-meter" style="margin-top:8px"><span id="operatorMotionBar"></span></div>' +
+	    '<div class="motion-grid">' +
+	      '<div class="motion-chip" id="operatorPersonChip">人體：--</div>' +
+	      '<div class="motion-chip" id="operatorPoseChip">骨架：--</div>' +
+	      '<div class="motion-chip" id="operatorPostureChip">站位：--</div>' +
       '<div class="motion-chip" id="operatorHandChip">手部：--</div>' +
       '<div class="motion-chip" id="operatorPaceChip">節奏：--</div>' +
       '<div class="motion-chip" id="operatorSafetyChip">安全：--</div>' +
@@ -2699,6 +2700,10 @@ async function loadOperatorPoseModel() {
 function updateOperatorPoseChip(text) {
   const poseChip = document.getElementById('operatorPoseChip');
   if (poseChip) poseChip.textContent = text;
+}
+function updateOperatorPersonChip(text) {
+  const personChip = document.getElementById('operatorPersonChip');
+  if (personChip) personChip.textContent = text;
 }
 async function analyzeOperatorFrame() {
   if (currentPage !== 'sop' || !operatorCameraState.stream) return;
@@ -2819,7 +2824,17 @@ function poseShiftScore(pose, video) {
 function analyzeOperatorPose(pose, motion, video) {
   drawOperatorPose(pose, video);
   if (!pose || !pose.keypoints) {
+    updateOperatorMonitor('warn', localText('未偵測到人體，請確認作業員在畫面中','No person detected. Confirm the operator is in frame.','Chưa phát hiện người, vui lòng xác nhận nhân viên trong khung hình'), 0);
+    updateOperatorPersonChip(localText('人體：未偵測','Person: not detected','Người: chưa phát hiện'));
     updateOperatorPoseChip(localText('骨架：未偵測到人體','Pose: no person detected','Khung xương: chưa phát hiện người'));
+    const posture = document.getElementById('operatorPostureChip');
+    const hand = document.getElementById('operatorHandChip');
+    const pace = document.getElementById('operatorPaceChip');
+    const safety = document.getElementById('operatorSafetyChip');
+    if (posture) posture.textContent = localText('站位：未入鏡','Position: out of frame','Vị trí: ngoài khung');
+    if (hand) hand.textContent = localText('手部：未偵測','Hands: not detected','Tay: chưa phát hiện');
+    if (pace) pace.textContent = localText('節奏：無資料','Pace: no data','Nhịp: không có dữ liệu');
+    if (safety) safety.textContent = localText('安全：需確認人員位置','Safety: verify operator position','An toàn: cần xác nhận vị trí nhân viên');
     return;
   }
   const visible = pose.keypoints.filter(function(p){ return p.score == null || p.score >= 0.28; }).length;
@@ -2854,6 +2869,9 @@ function analyzeOperatorPose(pose, motion, video) {
     label = localText('作業動作中：手部與身體姿態持續比對 SOP','Operator active: hands and posture matching SOP','Đang thao tác: tay và tư thế được đối chiếu SOP');
   }
   updateOperatorMonitor(kind, label, combinedMotion);
+  updateOperatorPersonChip(poseScore >= 38 && torsoVisible
+    ? localText('人體：已偵測 ','Person: detected ','Người: đã phát hiện ') + poseScore + '%'
+    : localText('人體：部分偵測 ','Person: partial ','Người: phát hiện một phần ') + poseScore + '%');
   updateOperatorPoseChip(localText('骨架：','Pose: ','Khung xương: ')+visible+'/'+pose.keypoints.length+' · '+poseScore+'%');
   const posture = document.getElementById('operatorPostureChip');
   const hand = document.getElementById('operatorHandChip');
@@ -2920,6 +2938,8 @@ function stopOperatorCamera(showStatus) {
   const video = document.getElementById('operatorCameraVideo');
   if (video) video.srcObject = null;
   clearOperatorPoseCanvas();
+  updateOperatorPersonChip(localText('人體：--','Person: --','Người: --'));
+  updateOperatorPoseChip(localText('骨架：--','Pose: --','Khung xương: --'));
   if (showStatus !== false) updateOperatorMonitor('info', localText('鏡頭已暫停','Camera paused','Camera đã tạm dừng'), 0);
 }
 function viewPhoto(stepIdx, photoIdx) {

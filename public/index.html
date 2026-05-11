@@ -107,6 +107,13 @@
   .operator-camera-stage{position:relative;aspect-ratio:16/10;min-height:360px;background:#f7f7f7;border:1px solid var(--c-line);border-radius:10px;overflow:hidden}
   .operator-camera-stage video{width:100%;height:100%;object-fit:cover;background:#fff}
   .operator-pose-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .operator-frame-hud{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;z-index:2;pointer-events:none}
+  .frame-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 7px;border-radius:6px;border:1px solid #111;background:rgba(255,255,255,.92);color:#111;font-size:10px;font-weight:800;letter-spacing:.2px}
+  .frame-chip.live{background:#d6282f;color:#fff;border-color:#d6282f}
+  .frame-chip.warn{background:#fff7e6;color:#8a5200;border-color:#8a5200}
+  .frame-chip.ok{background:#eefaf3;color:#136b3a;border-color:#136b3a}
+  .operator-frame-side{position:absolute;right:8px;top:46px;z-index:2;display:grid;gap:6px;width:min(150px,42%);pointer-events:none}
+  .frame-metric{padding:6px 7px;border-radius:6px;border:1px solid #111;background:rgba(255,255,255,.9);font-size:10px;font-weight:800;color:#111}
   .operator-camera-overlay{position:absolute;left:8px;right:8px;bottom:8px;padding:7px 9px;border:1px solid #111;border-radius:8px;background:rgba(255,255,255,.92);color:#111;font-size:11px;font-weight:700}
   .motion-meter{height:8px;border-radius:999px;background:#f2f2f2;border:1px solid #111;overflow:hidden}
   .motion-meter>span{display:block;height:100%;width:0;background:#d6282f;transition:width .25s}
@@ -2590,12 +2597,24 @@ function operatorMonitorHtml(stepIdx, step) {
       '<div style="font-size:12px;color:var(--c-mute);margin-top:3px">'+localText('鏡頭保持開啟，持續分析站位、手部動作與步驟節奏。','Camera stays on to analyze position, hand motion and step pace.','Camera luôn bật để phân tích vị trí, thao tác tay và nhịp bước.')+'</div></div>' +
       '<span class="badge b-info">⏱ '+((step && step.duration) || 5)+' min</span>' +
     '</div>' +
-    '<div class="operator-camera-stage">' +
-      '<video id="operatorCameraVideo" autoplay playsinline muted></video>' +
-      '<canvas id="operatorMotionCanvas" width="96" height="72" style="display:none"></canvas>' +
-      '<canvas id="operatorPoseCanvas" class="operator-pose-canvas"></canvas>' +
-      '<div id="operatorCameraOverlay" class="operator-camera-overlay">'+localText('等待相機權限','Waiting for camera permission','Đang chờ quyền camera')+'</div>' +
-    '</div>' +
+	    '<div class="operator-camera-stage">' +
+	      '<video id="operatorCameraVideo" autoplay playsinline muted></video>' +
+	      '<canvas id="operatorMotionCanvas" width="96" height="72" style="display:none"></canvas>' +
+	      '<canvas id="operatorPoseCanvas" class="operator-pose-canvas"></canvas>' +
+	      '<div class="operator-frame-hud">' +
+	        '<span class="frame-chip live">● LIVE</span>' +
+	        '<span id="operatorFramePerson" class="frame-chip">PERSON --</span>' +
+	        '<span id="operatorFrameRisk" class="frame-chip">RISK --</span>' +
+	        '<span id="operatorFrameModel" class="frame-chip">MoveNet --</span>' +
+	      '</div>' +
+	      '<div class="operator-frame-side">' +
+	        '<div id="operatorFrameMotion" class="frame-metric">MOTION --</div>' +
+	        '<div id="operatorFrameJoints" class="frame-metric">JOINTS --</div>' +
+	        '<div id="operatorFramePosture" class="frame-metric">POSTURE --</div>' +
+	        '<div id="operatorFrameUpdated" class="frame-metric">--:--</div>' +
+	      '</div>' +
+	      '<div id="operatorCameraOverlay" class="operator-camera-overlay">'+localText('等待相機權限','Waiting for camera permission','Đang chờ quyền camera')+'</div>' +
+	    '</div>' +
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px">' +
       '<div id="operatorMotionStatus" style="font-size:13px;font-weight:800">'+localText('AI 監督準備中','AI monitor ready','AI đang chuẩn bị giám sát')+'</div>' +
       '<span id="operatorMotionScore" class="badge b-info">0%</span>' +
@@ -2731,6 +2750,27 @@ function updateOperatorAdvice(text) {
   const el = document.getElementById('operatorAdviceText');
   if (el) el.textContent = text;
 }
+function updateOperatorFrameHud(data) {
+  data = data || {};
+  const person = document.getElementById('operatorFramePerson');
+  const risk = document.getElementById('operatorFrameRisk');
+  const model = document.getElementById('operatorFrameModel');
+  const motion = document.getElementById('operatorFrameMotion');
+  const joints = document.getElementById('operatorFrameJoints');
+  const posture = document.getElementById('operatorFramePosture');
+  const updated = document.getElementById('operatorFrameUpdated');
+  const riskKind = data.riskKind || 'info';
+  if (person) person.textContent = data.person || 'PERSON --';
+  if (risk) {
+    risk.className = 'frame-chip '+(riskKind === 'warn' ? 'warn' : riskKind === 'ok' ? 'ok' : '');
+    risk.textContent = data.risk || 'RISK --';
+  }
+  if (model) model.textContent = data.model || 'MoveNet --';
+  if (motion) motion.textContent = data.motion || 'MOTION --';
+  if (joints) joints.textContent = data.joints || 'JOINTS --';
+  if (posture) posture.textContent = data.posture || 'POSTURE --';
+  if (updated) updated.textContent = data.updated || '--:--';
+}
 async function analyzeOperatorFrame() {
   if (currentPage !== 'sop' || !operatorCameraState.stream) return;
   const video = document.getElementById('operatorCameraVideo');
@@ -2767,6 +2807,16 @@ async function analyzeOperatorFrame() {
   }
   updateOperatorMonitor(kind, label, motion);
   setOperatorChip('operatorUpdatedChip', localText('更新：','Updated: ','Cập nhật: ')+nowHHMM());
+  updateOperatorFrameHud({
+    person:'PERSON --',
+    risk:kind === 'warn' ? 'RISK MED' : 'RISK LOW',
+    riskKind:kind === 'warn' ? 'warn' : 'ok',
+    model:operatorCameraState.poseReady ? 'MoveNet' : 'Motion',
+    motion:'MOTION '+motion+'%',
+    joints:'JOINTS --',
+    posture:'POSTURE --',
+    updated:nowHHMM()
+  });
   if (!operatorCameraState.poseReady) {
     setOperatorChip('operatorRiskChip', kind === 'warn' ? localText('風險：中','Risk: medium','Rủi ro: trung bình') : localText('風險：低','Risk: low','Rủi ro: thấp'));
     updateOperatorAdvice(kind === 'warn'
@@ -2815,6 +2865,28 @@ function drawOperatorPose(pose, video) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, w, h);
   if (!pose || !pose.keypoints) return;
+  const visiblePoints = pose.keypoints.filter(function(p){ return p.score == null || p.score >= 0.28; });
+  if (visiblePoints.length) {
+    const xs = visiblePoints.map(function(p){ return p.x; });
+    const ys = visiblePoints.map(function(p){ return p.y; });
+    const minX = Math.max(0, Math.min.apply(null, xs) - 18);
+    const minY = Math.max(0, Math.min.apply(null, ys) - 22);
+    const maxX = Math.min(w, Math.max.apply(null, xs) + 18);
+    const maxY = Math.min(h, Math.max.apply(null, ys) + 22);
+    const boxW = maxX - minX;
+    const boxH = maxY - minY;
+    const score = Math.round((visiblePoints.length / Math.max(1, pose.keypoints.length)) * 100);
+    ctx.strokeStyle = '#d6282f';
+    ctx.lineWidth = Math.max(3, w / 220);
+    ctx.setLineDash([Math.max(8, w / 90), Math.max(5, w / 150)]);
+    ctx.strokeRect(minX, minY, boxW, boxH);
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#d6282f';
+    ctx.fillRect(minX, Math.max(0, minY - 28), Math.min(180, Math.max(112, boxW * .55)), 24);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold '+Math.max(12, Math.round(w / 54))+'px sans-serif';
+    ctx.fillText('PERSON '+score+'%', minX + 8, Math.max(17, minY - 10));
+  }
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   OPERATOR_POSE_LINKS.forEach(function(link) {
@@ -2858,6 +2930,16 @@ function analyzeOperatorPose(pose, motion, video) {
   drawOperatorPose(pose, video);
   if (!pose || !pose.keypoints) {
     updateOperatorMonitor('warn', localText('未偵測到人體，請確認作業員在畫面中','No person detected. Confirm the operator is in frame.','Chưa phát hiện người, vui lòng xác nhận nhân viên trong khung hình'), 0);
+    updateOperatorFrameHud({
+      person:'PERSON 0%',
+      risk:'RISK MED',
+      riskKind:'warn',
+      model:operatorCameraState.poseReady ? 'MoveNet' : 'Motion',
+      motion:'MOTION 0%',
+      joints:'JOINTS 0/17',
+      posture:'NO PERSON',
+      updated:nowHHMM()
+    });
     updateOperatorPersonChip(localText('人體：未偵測','Person: not detected','Người: chưa phát hiện'));
     updateOperatorPoseChip(localText('骨架：未偵測到人體','Pose: no person detected','Khung xương: chưa phát hiện người'));
     const posture = document.getElementById('operatorPostureChip');
@@ -2912,6 +2994,16 @@ function analyzeOperatorPose(pose, motion, video) {
   updateOperatorPersonChip(poseScore >= 38 && torsoVisible
     ? localText('人體：已偵測 ','Person: detected ','Người: đã phát hiện ') + poseScore + '%'
     : localText('人體：部分偵測 ','Person: partial ','Người: phát hiện một phần ') + poseScore + '%');
+  updateOperatorFrameHud({
+    person:'PERSON '+poseScore+'%',
+    risk:kind === 'warn' ? 'RISK MED' : 'RISK LOW',
+    riskKind:kind === 'warn' ? 'warn' : 'ok',
+    model:'MoveNet',
+    motion:'MOTION '+combinedMotion+'%',
+    joints:'JOINTS '+visible+'/'+pose.keypoints.length,
+    posture:fullBody ? 'FULL BODY' : torsoVisible ? 'UPPER BODY' : 'PARTIAL',
+    updated:nowHHMM()
+  });
   updateOperatorPoseChip(localText('骨架：','Pose: ','Khung xương: ')+visible+'/'+pose.keypoints.length+' · '+poseScore+'%');
   const posture = document.getElementById('operatorPostureChip');
   const hand = document.getElementById('operatorHandChip');
@@ -2997,6 +3089,15 @@ function stopOperatorCamera(showStatus) {
   setOperatorChip('operatorFullBodyChip', localText('全身：--','Full body: --','Toàn thân: --'));
   setOperatorChip('operatorRiskChip', localText('風險：--','Risk: --','Rủi ro: --'));
   setOperatorChip('operatorUpdatedChip', localText('更新：--','Updated: --','Cập nhật: --'));
+  updateOperatorFrameHud({
+    person:'PERSON --',
+    risk:'RISK --',
+    model:'MoveNet --',
+    motion:'MOTION --',
+    joints:'JOINTS --',
+    posture:'POSTURE --',
+    updated:'--:--'
+  });
   updateOperatorAdvice(localText('鏡頭已暫停，按「啟動鏡頭」後會重新開始人體與骨架分析。','Camera paused. Press Start camera to resume person and pose analysis.','Camera đã tạm dừng. Nhấn Bật camera để phân tích người và khung xương lại.'));
   if (showStatus !== false) updateOperatorMonitor('info', localText('鏡頭已暫停','Camera paused','Camera đã tạm dừng'), 0);
 }

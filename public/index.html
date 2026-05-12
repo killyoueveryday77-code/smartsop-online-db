@@ -83,6 +83,12 @@
   .check-field-chip{display:inline-flex;align-items:center;padding:2px 7px;border:1px solid #111;border-radius:999px;background:#fff;font-size:10px;font-weight:800;color:#111}
   .check-input-hint{margin-top:7px;font-size:11px;line-height:1.45;color:var(--c-mute);font-weight:700}
   .check-form-btn{margin-top:8px;padding:4px 9px;border-radius:7px;border:1px solid #d6282f;background:#fff;color:#d6282f;font-size:11px;font-weight:900;cursor:pointer}
+  .check-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+  .check-photo-btn{padding:4px 9px;border-radius:7px;border:1px solid #111;background:#fff;color:#111;font-size:11px;font-weight:900;cursor:pointer}
+  .check-photo-strip{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .check-photo-thumb{width:46px;height:46px;border-radius:8px;background-size:cover;background-position:center;border:2px solid #168a4a;position:relative;cursor:pointer;overflow:hidden}
+  .check-photo-thumb.ng{border-color:#ef4444}
+  .check-photo-count{display:inline-flex;align-items:center;padding:2px 7px;border:1px solid #111;border-radius:999px;background:#fff;font-size:10px;font-weight:900;color:#111}
   .equipment-card{padding:14px;border-radius:12px;background:#fff;border:1px solid var(--c-line);position:relative;overflow:hidden}
   .equipment-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:#d6282f}
   .equipment-card.warn::before{background:linear-gradient(90deg,#f59e0b,#ef4444)}
@@ -2550,17 +2556,30 @@ function checkRelationHtml(stepIdx, checkIdx) {
   const formId = SOP_FORMID[stepIdx];
   const formDef = FORM_DEFS[formId];
   const link = (SOP_CHECK_LINKS[stepIdx] && SOP_CHECK_LINKS[stepIdx][checkIdx]) || {fields:['notes']};
+  const photos = checkPhotoList(stepIdx, checkIdx);
   const fields = (link.fields || ['notes']).map(function(fieldId){
     return '<span class="check-field-chip">'+_esc(formFieldLabel(formId, fieldId))+'</span>';
   }).join('');
   const hint = byLang(link, 'hint') || localText('依關聯表單欄位輸入實測值或結果，再勾選檢核項。','Enter the measured value or result in the linked form field before checking.','Nhập giá trị hoặc kết quả vào trường biểu mẫu liên quan trước khi chọn.');
+  const photoStrip = photos.length ? '<div class="check-photo-strip">' +
+    photos.slice(0,4).map(function(p,pi){
+      return '<div class="check-photo-thumb '+(p.isBad?'ng':'')+'" style="background-image:url(\''+p.url+'\')" onclick="event.stopPropagation();viewCheckPhoto('+stepIdx+','+checkIdx+','+pi+')">' +
+        '<span style="position:absolute;right:2px;top:2px;background:'+(p.isBad?'#ef4444':'#168a4a')+';color:#fff;border-radius:4px;padding:1px 4px;font-size:8px;font-weight:900">'+(p.isBad?'NG':'OK')+'</span></div>';
+    }).join('') +
+    (photos.length > 4 ? '<span class="check-photo-count">+'+(photos.length-4)+'</span>' : '') +
+    '</div>' : '';
   return '<div class="check-relation">' +
       '<span class="check-relation-label">'+localText('關聯','Linked','Liên kết')+'</span>' +
       '<span class="check-field-chip">'+_esc(formDef ? byLang(formDef, 'title') : formId)+'</span>' +
       fields +
     '</div>' +
     '<div class="check-input-hint">'+_esc(localText('輸入說明：','Input: ','Nhập: ')+hint)+'</div>' +
-    '<button class="check-form-btn" onclick="event.stopPropagation();formOpen(\''+formId+'\',\''+sopState.batch+'\')">'+localText('填寫關聯表單','Fill linked form','Điền biểu mẫu liên quan')+'</button>';
+    '<div class="check-actions">' +
+      '<button class="check-form-btn" onclick="event.stopPropagation();formOpen(\''+formId+'\',\''+sopState.batch+'\')">'+localText('填寫關聯表單','Fill linked form','Điền biểu mẫu liên quan')+'</button>' +
+      '<button class="check-photo-btn" onclick="event.stopPropagation();takeCheckPhoto('+stepIdx+','+checkIdx+')">📸 '+localText('拍照','Photo','Chụp ảnh')+'</button>' +
+      (photos.length ? '<span class="check-photo-count">📷 '+photos.length+'</span>' : '') +
+    '</div>' +
+    photoStrip;
 }
 
 function formOpen(formId, batchId) {
@@ -2636,12 +2655,23 @@ function takePhoto(stepIdx) {
   input.onchange = function(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-    handleCameraPhoto(stepIdx, file);
+    handleCameraPhoto(stepIdx, file, null);
     input.value = '';
   };
   input.click();
 }
-function handleCameraPhoto(stepIdx, file) {
+function takeCheckPhoto(stepIdx, checkIdx) {
+  const input = getCameraInput();
+  input.value = '';
+  input.onchange = function(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    handleCameraPhoto(stepIdx, file, checkIdx);
+    input.value = '';
+  };
+  input.click();
+}
+function handleCameraPhoto(stepIdx, file, checkIdx) {
   if (!window.FileReader) {
     showToast(localText('此裝置不支援讀取相機照片','This device cannot read camera photos','Thiết bị này không hỗ trợ đọc ảnh camera'), 'bad');
     return;
@@ -2652,7 +2682,7 @@ function handleCameraPhoto(stepIdx, file) {
   };
   reader.onload = function(event) {
     resizeCapturedPhoto(event.target.result, function(url) {
-      addPhotoRecord(stepIdx, url, file.name || localText('相機照片','Camera photo','Ảnh camera'));
+      addPhotoRecord(stepIdx, url, file.name || localText('相機照片','Camera photo','Ảnh camera'), checkIdx);
     });
   };
   reader.readAsDataURL(file);
@@ -2676,13 +2706,45 @@ function resizeCapturedPhoto(src, done) {
   };
   img.src = src;
 }
-function addPhotoRecord(stepIdx, url, name) {
+function checkPhotoKey(stepIdx, checkIdx) {
+  return 'step_'+stepIdx+'_check_'+checkIdx;
+}
+function checkPhotoList(stepIdx, checkIdx) {
+  return STATE.photos[checkPhotoKey(stepIdx, checkIdx)] || [];
+}
+function addPhotoRecord(stepIdx, url, name, checkIdx) {
   const isBad = Math.random() < 0.2;
-  const key = 'step_'+stepIdx;
+  const key = checkIdx === null || checkIdx === undefined ? 'step_'+stepIdx : checkPhotoKey(stepIdx, checkIdx);
   if (!STATE.photos[key]) STATE.photos[key] = [];
-  STATE.photos[key].push({url:url, isBad:isBad, time:nowFull(), name:name || '', source:'camera'});
+  STATE.photos[key].push({url:url, isBad:isBad, time:nowFull(), name:name || '', source:'camera', checkIdx:checkIdx});
   ssPersist();
-  showToast('📸 '+localText('已加入相機照片，AI 判定：','Camera photo added, AI result: ','Đã thêm ảnh camera, kết quả AI: ')+(isBad?'NG':'OK'), isBad?'warn':'ok');
+  showToast('📸 '+(checkIdx === null || checkIdx === undefined ? localText('已加入相機照片，AI 判定：','Camera photo added, AI result: ','Đã thêm ảnh camera, kết quả AI: ') : localText('檢核照片已加入，AI 判定：','Check photo added, AI result: ','Đã thêm ảnh kiểm tra, kết quả AI: '))+(isBad?'NG':'OK'), isBad?'warn':'ok');
+  if (currentPage === 'sop') renderSOPDetail();
+}
+function viewCheckPhoto(stepIdx, checkIdx, photoIdx) {
+  const photos = checkPhotoList(stepIdx, checkIdx);
+  const p = photos[photoIdx];
+  if (!p) return;
+  const step = SOP_STEPS[stepIdx];
+  const checkLabel = byLang(step, 'checks')[checkIdx] || '';
+  const html = '<div style="text-align:center">' +
+    '<img src="'+p.url+'" style="max-width:100%;border-radius:12px;border:1px solid var(--c-line);margin-bottom:10px" />' +
+    '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
+      '<span class="badge '+(p.isBad?'b-bad':'b-ok')+'">'+(p.isBad?'NG':'OK')+'</span>' +
+      '<span style="font-size:12px;color:var(--c-mute)">'+_esc(checkLabel)+'</span>' +
+      '<span style="font-size:12px;color:var(--c-mute)">'+(p.time || '')+'</span>' +
+    '</div>' +
+    '<button class="btn btn-danger" style="margin-top:12px" onclick="deleteCheckPhoto('+stepIdx+','+checkIdx+','+photoIdx+')">'+localText('刪除照片','Delete photo','Xóa ảnh')+'</button>' +
+  '</div>';
+  openModal(html, {title:'📷 '+localText('檢核照片','Check photo','Ảnh kiểm tra'), width:'720px'});
+}
+function deleteCheckPhoto(stepIdx, checkIdx, photoIdx) {
+  const key = checkPhotoKey(stepIdx, checkIdx);
+  if (!STATE.photos[key]) return;
+  STATE.photos[key].splice(photoIdx, 1);
+  if (STATE.photos[key].length === 0) delete STATE.photos[key];
+  ssPersist();
+  closeModal(document.querySelector('.modal-bg'));
   if (currentPage === 'sop') renderSOPDetail();
 }
 function takeDemoPhoto(stepIdx) {

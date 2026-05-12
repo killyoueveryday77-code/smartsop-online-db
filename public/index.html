@@ -72,9 +72,17 @@
   ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}
   ::-webkit-scrollbar-thumb{background:#111;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#d6282f}
   .check-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--c-line);cursor:pointer;user-select:none}
+  .check-card.with-relation{align-items:flex-start}
   .check-card.checked{background:#f2fbf5;border-color:#168a4a}
   .check-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--c-mute);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
   .check-card.checked .check-box{background:#168a4a;border-color:#168a4a;color:#fff}
+  .check-content{min-width:0;flex:1}
+  .check-title{font-size:13px;font-weight:800;line-height:1.35}
+  .check-relation{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;align-items:center}
+  .check-relation-label{font-size:10px;font-weight:900;color:#d6282f;white-space:nowrap}
+  .check-field-chip{display:inline-flex;align-items:center;padding:2px 7px;border:1px solid #111;border-radius:999px;background:#fff;font-size:10px;font-weight:800;color:#111}
+  .check-input-hint{margin-top:7px;font-size:11px;line-height:1.45;color:var(--c-mute);font-weight:700}
+  .check-form-btn{margin-top:8px;padding:4px 9px;border-radius:7px;border:1px solid #d6282f;background:#fff;color:#d6282f;font-size:11px;font-weight:900;cursor:pointer}
   .equipment-card{padding:14px;border-radius:12px;background:#fff;border:1px solid var(--c-line);position:relative;overflow:hidden}
   .equipment-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:#d6282f}
   .equipment-card.warn::before{background:linear-gradient(90deg,#f59e0b,#ef4444)}
@@ -1259,11 +1267,14 @@ function renderSOPDetail(){
 
           <div style="margin-top:18px">
             <div style="font-weight:700;margin-bottom:10px" data-i18n="sop.checklist">檢核項目</div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px">
               ${checkLabels.map((c,ci)=>`
-                <div class="check-card ${checks[ci]?'checked':''}" onclick="sopToggleCheck(${ci})">
+                <div class="check-card with-relation ${checks[ci]?'checked':''}" onclick="sopToggleCheck(${ci})">
                   <div class="check-box">${checks[ci]?'✓':''}</div>
-                  <div style="font-size:13px">${c}</div>
+                  <div class="check-content">
+                    <div class="check-title">${c}</div>
+                    ${checkRelationHtml(i,ci)}
+                  </div>
                 </div>
               `).join('')}
             </div>
@@ -2449,6 +2460,108 @@ const FORM_DEFS = {
   ]}
 };
 const SOP_FORMID = ['raw_material','mixing','assembly','preheat','flush','prod','cutting','qc_inspection','drying','cooling','product_check'];
+const SOP_CHECK_LINKS = [
+  [
+    {fields:['supplier','lot'], hintZh:'核對送貨單、原料標籤與批號，兩者需一致後再勾選。', hintEn:'Compare delivery note, supplier label and lot ID before checking.', hintVi:'Đối chiếu phiếu giao hàng, nhãn nguyên liệu và mã lô trước khi chọn.'},
+    {fields:['moisture'], hintZh:'輸入實測水分值，需落在 10-14% 範圍內。', hintEn:'Enter measured moisture; it must be within 10-14%.', hintVi:'Nhập độ ẩm đo được, phải nằm trong 10-14%.'},
+    {fields:['foreign'], hintZh:'選擇異物檢查結果；若有異常請在備註說明。', hintEn:'Select the foreign matter result; add notes for any issue.', hintVi:'Chọn kết quả kiểm tra dị vật; ghi chú nếu bất thường.'},
+    {fields:['storage'], hintZh:'確認儲存區乾燥、包材完整，並記錄環境狀態。', hintEn:'Confirm dry storage and intact packaging, then record status.', hintVi:'Xác nhận khu lưu trữ khô ráo, bao bì nguyên vẹn và ghi trạng thái.'}
+  ],
+  [
+    {fields:['powder'], hintZh:'輸入粉體原料實際秤重值，需與配方單一致。', hintEn:'Enter actual powder weight and compare with the formula sheet.', hintVi:'Nhập khối lượng bột thực tế và đối chiếu công thức.'},
+    {fields:['liquid'], hintZh:'輸入水或配方液用量，確認單位與批次配方一致。', hintEn:'Enter liquid amount; confirm unit and batch formula.', hintVi:'Nhập lượng nước/dung dịch, xác nhận đơn vị và công thức lô.'},
+    {fields:['notes'], hintZh:'確認混料機已清潔；若有殘料或異味請記錄。', hintEn:'Confirm mixer cleanliness; note residue or odor if found.', hintVi:'Xác nhận máy trộn sạch; ghi chú nếu còn dư liệu hoặc mùi lạ.'},
+    {fields:['time','rpm'], hintZh:'輸入混合時間與轉速，作為製程參數追溯。', hintEn:'Enter mix time and RPM for process traceability.', hintVi:'Nhập thời gian trộn và RPM để truy xuất thông số.'}
+  ],
+  [
+    {fields:['screw','rings','die','head'], hintZh:'逐項確認螺軸、固定圈、導流片、模頭與牽引頭已安裝。', hintEn:'Confirm screw, rings, flow guide, die and traction head are installed.', hintVi:'Xác nhận trục vít, vòng cố định, tấm dẫn dòng, khuôn và đầu kéo đã lắp.'},
+    {fields:['bolt'], hintZh:'確認所有固定螺栓已鎖緊，避免熱機後鬆動。', hintEn:'Confirm all bolts are tightened before pre-heating.', hintVi:'Xác nhận toàn bộ bu lông đã siết chặt trước gia nhiệt.'},
+    {fields:['screw','rings','die','head','bolt'], hintZh:'手動晃動確認無鬆動，異常需記錄於備註。', hintEn:'Check for looseness by hand; record abnormalities in notes.', hintVi:'Kiểm tra độ lỏng bằng tay; ghi bất thường vào ghi chú.'},
+    {fields:['notes'], hintZh:'記錄組裝完成時間、異常處理與簽核人員。', hintEn:'Record assembly completion time, issues and signer.', hintVi:'Ghi thời gian hoàn tất lắp ráp, xử lý bất thường và người ký.'}
+  ],
+  [
+    {fields:['notes'], hintZh:'確認主電源與安全開關狀態，異常不可啟動。', hintEn:'Confirm main power and safety switch status before start.', hintVi:'Xác nhận nguồn chính và công tắc an toàn trước khi chạy.'},
+    {fields:['notes'], hintZh:'檢查加熱圈與插梢定位，避免接觸不良。', hintEn:'Check heater band and pin position to prevent bad contact.', hintVi:'Kiểm tra vòng gia nhiệt và chốt để tránh tiếp xúc kém.'},
+    {fields:['screw_t','die_t'], hintZh:'輸入螺軸與模頭溫度，標準範圍為 60-80°C。', hintEn:'Enter screw and die temperatures; target is 60-80°C.', hintVi:'Nhập nhiệt độ trục vít và khuôn, tiêu chuẩn 60-80°C.'},
+    {fields:['mins'], hintZh:'輸入預熱時間，至少 30 分鐘並持續觀察溫度。', hintEn:'Enter pre-heat minutes; minimum 30 min with temperature monitoring.', hintVi:'Nhập thời gian gia nhiệt, tối thiểu 30 phút và theo dõi nhiệt độ.'}
+  ],
+  [
+    {fields:['mat','qty'], hintZh:'記錄洗機材料與用量，確認使用糙米清機。', hintEn:'Record flush material and quantity; confirm brown rice is used.', hintVi:'Ghi vật liệu và lượng vệ sinh; xác nhận dùng gạo lứt.'},
+    {fields:['notes'], hintZh:'觀察出料口是否順暢，阻塞需停機處理。', hintEn:'Observe outlet flow; stop and handle blockage if found.', hintVi:'Quan sát cửa ra liệu; dừng máy xử lý nếu tắc.'},
+    {fields:['color'], hintZh:'選擇顏色變化結果，灰轉黃代表可切換正式原料。', hintEn:'Select color-change result; gray to yellow means ready for formal feed.', hintVi:'Chọn kết quả đổi màu; xám sang vàng là có thể đổi nguyên liệu chính.'},
+    {fields:['notes'], hintZh:'記錄洗機結束時間與任何異常狀況。', hintEn:'Record flush end time and any abnormal condition.', hintVi:'Ghi thời gian kết thúc vệ sinh và tình trạng bất thường.'}
+  ],
+  [
+    {fields:['feed'], hintZh:'輸入正式進料原料名稱，需與製令一致。', hintEn:'Enter formal feed material and compare with work order.', hintVi:'Nhập nguyên liệu cấp chính và đối chiếu lệnh sản xuất.'},
+    {fields:['rpm'], hintZh:'輸入主機轉速，標準設定為 38 rpm。', hintEn:'Enter main machine RPM; standard setting is 38 rpm.', hintVi:'Nhập RPM máy chính, tiêu chuẩn là 38 rpm.'},
+    {fields:['notes'], hintZh:'確認不得空轉；若曾空轉需記錄原因與處理。', hintEn:'Confirm no idle running; record cause and action if it occurred.', hintVi:'Xác nhận không chạy không tải; ghi nguyên nhân và xử lý nếu có.'},
+    {fields:['temp','output'], hintZh:'記錄模頭溫度與產出，觀察產品顏色是否穩定。', hintEn:'Record die temperature and output; check product color stability.', hintVi:'Ghi nhiệt độ khuôn và sản lượng; quan sát màu sản phẩm ổn định.'}
+  ],
+  [
+    {fields:['notes'], hintZh:'確認已配戴隔熱手套與防護具。', hintEn:'Confirm heat gloves and PPE are worn.', hintVi:'Xác nhận đã đeo găng chịu nhiệt và bảo hộ.'},
+    {fields:['belt','blade'], hintZh:'輸入皮帶速度與刀片轉速，確認前後段同步。', hintEn:'Enter belt speed and blade RPM; confirm line synchronization.', hintVi:'Nhập tốc độ băng và RPM dao; xác nhận đồng bộ dây chuyền.'},
+    {fields:['steam'], hintZh:'選擇蒸氣噴出狀況；有蒸氣須判定不良並記錄。', hintEn:'Select steam status; steam puff indicates defect and must be recorded.', hintVi:'Chọn trạng thái phun hơi; có hơi là lỗi và cần ghi nhận.'},
+    {fields:['width'], hintZh:'輸入皮帶寬度，寬度會影響成品厚度。', hintEn:'Enter belt width; it affects product thickness.', hintVi:'Nhập bề rộng băng, thông số này ảnh hưởng độ dày sản phẩm.'}
+  ],
+  [
+    {fields:['length'], hintZh:'輸入抽樣長度，標準為 7.8±0.4 cm。', hintEn:'Enter sample length; target is 7.8±0.4 cm.', hintVi:'Nhập chiều dài mẫu, tiêu chuẩn 7.8±0.4 cm.'},
+    {fields:['width'], hintZh:'輸入抽樣寬度，標準為 3.1±0.2 cm。', hintEn:'Enter sample width; target is 3.1±0.2 cm.', hintVi:'Nhập chiều rộng mẫu, tiêu chuẩn 3.1±0.2 cm.'},
+    {fields:['thick'], hintZh:'輸入抽樣厚度，標準為 1.3±0.2 cm。', hintEn:'Enter sample thickness; target is 1.3±0.2 cm.', hintVi:'Nhập độ dày mẫu, tiêu chuẩn 1.3±0.2 cm.'},
+    {fields:['weight'], hintZh:'輸入抽樣重量，標準為 2.7±0.5 g。', hintEn:'Enter sample weight; target is 2.7±0.5 g.', hintVi:'Nhập trọng lượng mẫu, tiêu chuẩn 2.7±0.5 g.'},
+    {fields:['crisp','notes'], hintZh:'記錄口感檢核結果；未熟或不脆需填寫備註。', hintEn:'Record taste/crispness result; note undercooked or soft samples.', hintVi:'Ghi kết quả cảm quan; ghi chú nếu chưa chín hoặc không giòn.'}
+  ],
+  [
+    {fields:['temp'], hintZh:'輸入乾燥溫度，標準為 120-150°C。', hintEn:'Enter drying temperature; target is 120-150°C.', hintVi:'Nhập nhiệt độ sấy, tiêu chuẩn 120-150°C.'},
+    {fields:['time'], hintZh:'輸入乾燥時間，標準為 10-15 分鐘。', hintEn:'Enter drying time; target is 10-15 min.', hintVi:'Nhập thời gian sấy, tiêu chuẩn 10-15 phút.'},
+    {fields:['final'], hintZh:'輸入最終水分，須小於 5%。', hintEn:'Enter final moisture; it must be less than 5%.', hintVi:'Nhập độ ẩm cuối, phải nhỏ hơn 5%.'},
+    {fields:['cycle','notes'], hintZh:'若未達標，選擇第二次回饋並填寫調整內容。', hintEn:'If out of spec, select second cycle and record adjustments.', hintVi:'Nếu chưa đạt, chọn điều chỉnh lần hai và ghi nội dung.'}
+  ],
+  [
+    {fields:['amb'], hintZh:'輸入冷卻後室溫或產品溫度，確認已降至室溫。', hintEn:'Enter ambient/product temperature after cooling.', hintVi:'Nhập nhiệt độ phòng/sản phẩm sau làm nguội.'},
+    {fields:['amb'], hintZh:'確認產品已降溫至可包裝狀態。', hintEn:'Confirm product is cooled enough for packaging.', hintVi:'Xác nhận sản phẩm đã nguội đủ để đóng gói.'},
+    {fields:['sealed'], hintZh:'選擇是否已蓋上蓋子，避免吸濕。', hintEn:'Select whether the container is capped to prevent moisture uptake.', hintVi:'Chọn đã đậy nắp để tránh hút ẩm.'},
+    {fields:['qty'], hintZh:'輸入冷卻後箱數，供批次追溯使用。', hintEn:'Enter box count after cooling for traceability.', hintVi:'Nhập số thùng sau làm nguội để truy xuất.'}
+  ],
+  [
+    {fields:['metal'], hintZh:'選擇金屬檢測結果；CCP 不通過不可放行。', hintEn:'Select metal detection result; failed CCP cannot be released.', hintVi:'Chọn kết quả kiểm tra kim loại; CCP không đạt không được xuất.'},
+    {fields:['puff'], hintZh:'確認膨化程度並記錄合格/不合格。', hintEn:'Confirm puff degree and record pass/fail.', hintVi:'Xác nhận mức độ phồng và ghi đạt/không đạt.'},
+    {fields:['crisp'], hintZh:'確認酥脆度並記錄合格/不合格。', hintEn:'Confirm crispness and record pass/fail.', hintVi:'Xác nhận độ giòn và ghi đạt/không đạt.'},
+    {fields:['moisture'], hintZh:'輸入最終水分複測值，標準小於 5%。', hintEn:'Enter rechecked final moisture; target is below 5%.', hintVi:'Nhập độ ẩm cuối kiểm lại, tiêu chuẩn dưới 5%.'}
+  ]
+];
+
+function formFieldLabel(formId, fieldId) {
+  const def = FORM_DEFS[formId];
+  if (!def) return fieldId;
+  const field = def.fields.find(function(f){ return f.id === fieldId; });
+  return field ? byLang(field, 'label') : fieldId;
+}
+function formFieldInstruction(formId, fieldId) {
+  const stepIdx = SOP_FORMID.indexOf(formId);
+  if (stepIdx >= 0 && SOP_CHECK_LINKS[stepIdx]) {
+    const found = SOP_CHECK_LINKS[stepIdx].find(function(link){
+      return (link.fields || []).indexOf(fieldId) >= 0;
+    });
+    if (found) return byLang(found, 'hint');
+  }
+  return localText('請依現場實測值、檢查結果或異常說明填寫。','Enter the on-site measured value, inspection result, or abnormal note.','Nhập giá trị đo tại hiện trường, kết quả kiểm tra hoặc ghi chú bất thường.');
+}
+function checkRelationHtml(stepIdx, checkIdx) {
+  const formId = SOP_FORMID[stepIdx];
+  const formDef = FORM_DEFS[formId];
+  const link = (SOP_CHECK_LINKS[stepIdx] && SOP_CHECK_LINKS[stepIdx][checkIdx]) || {fields:['notes']};
+  const fields = (link.fields || ['notes']).map(function(fieldId){
+    return '<span class="check-field-chip">'+_esc(formFieldLabel(formId, fieldId))+'</span>';
+  }).join('');
+  const hint = byLang(link, 'hint') || localText('依關聯表單欄位輸入實測值或結果，再勾選檢核項。','Enter the measured value or result in the linked form field before checking.','Nhập giá trị hoặc kết quả vào trường biểu mẫu liên quan trước khi chọn.');
+  return '<div class="check-relation">' +
+      '<span class="check-relation-label">'+localText('關聯','Linked','Liên kết')+'</span>' +
+      '<span class="check-field-chip">'+_esc(formDef ? byLang(formDef, 'title') : formId)+'</span>' +
+      fields +
+    '</div>' +
+    '<div class="check-input-hint">'+_esc(localText('輸入說明：','Input: ','Nhập: ')+hint)+'</div>' +
+    '<button class="check-form-btn" onclick="event.stopPropagation();formOpen(\''+formId+'\',\''+sopState.batch+'\')">'+localText('填寫關聯表單','Fill linked form','Điền biểu mẫu liên quan')+'</button>';
+}
 
 function formOpen(formId, batchId) {
   const def = FORM_DEFS[formId];
@@ -2456,17 +2569,20 @@ function formOpen(formId, batchId) {
   const saved = (STATE.forms[batchId] && STATE.forms[batchId][formId]) || {};
   const fhtml = def.fields.map(function(f) {
     const v = saved[f.id] !== undefined ? saved[f.id] : (byLang(f,'def') || f.def || '');
+    const fieldHint = formFieldInstruction(formId, f.id);
+    const labelHtml = '<label style="font-size:12px;color:var(--c-mute);font-weight:600">'+byLang(f,'label')+'</label>' +
+      '<div style="font-size:11px;color:var(--c-mute);line-height:1.4;margin-top:3px;font-weight:700">'+_esc(localText('輸入說明：','Input: ','Nhập: ')+fieldHint)+'</div>';
     if (f.type === 'select') {
-      return '<div><label style="font-size:12px;color:var(--c-mute);font-weight:600">'+byLang(f,'label')+'</label>' +
+      return '<div>'+labelHtml +
         '<select id="ff_'+f.id+'" style="width:100%;padding:10px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:8px;color:var(--c-text);margin-top:4px">' +
         f.options.map(function(o){return '<option value="'+o.v+'"'+(v===o.v?' selected':'')+'>'+optionText(o)+'</option>'}).join('') +
         '</select></div>';
     }
     if (f.type === 'textarea') {
-      return '<div style="grid-column:1/-1"><label style="font-size:12px;color:var(--c-mute);font-weight:600">'+byLang(f,'label')+'</label>' +
+      return '<div style="grid-column:1/-1">'+labelHtml +
         '<textarea id="ff_'+f.id+'" style="width:100%;min-height:70px;padding:10px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:8px;color:var(--c-text);margin-top:4px;font-family:inherit;resize:vertical">'+_esc(v)+'</textarea></div>';
     }
-    return '<div><label style="font-size:12px;color:var(--c-mute);font-weight:600">'+byLang(f,'label')+'</label>' +
+    return '<div>'+labelHtml +
       '<input type="'+f.type+'" '+(f.step?'step="'+f.step+'"':'')+' id="ff_'+f.id+'" value="'+_esc(v)+'" style="width:100%;padding:10px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:8px;color:var(--c-text);margin-top:4px;font-family:inherit"/></div>';
   }).join('');
   const html =
@@ -3557,10 +3673,11 @@ window.renderSOPDetail = function() {
           '<div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 '+localText('AI 即時建議','AI insight','Gợi ý AI tức thời')+'</div>' +
           '<div style="font-size:13px">'+byLang(s,'ai')+'</div></div>':'') +
         '<div style="margin-top:18px"><div style="font-weight:700;margin-bottom:10px">'+t('sop.checklist')+'</div>' +
-          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px">' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px">' +
             checkLabels.map(function(c,ci){
-              return '<div class="check-card '+(checks[ci]?'checked':'')+'" onclick="sopToggleCheck('+ci+')">' +
-                '<div class="check-box">'+(checks[ci]?'✓':'')+'</div><div style="font-size:13px">'+c+'</div></div>';
+              return '<div class="check-card with-relation '+(checks[ci]?'checked':'')+'" onclick="sopToggleCheck('+ci+')">' +
+                '<div class="check-box">'+(checks[ci]?'✓':'')+'</div>' +
+                '<div class="check-content"><div class="check-title">'+c+'</div>'+checkRelationHtml(i,ci)+'</div></div>';
             }).join('') +
           '</div></div>' +
         '<div style="margin-top:18px"><div style="font-weight:700;margin-bottom:10px">'+t('sop.params')+'</div>' +

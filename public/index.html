@@ -2655,9 +2655,10 @@ function formOpenCheck(stepIdx, checkIdx) {
   const link = (SOP_CHECK_LINKS[stepIdx] && SOP_CHECK_LINKS[stepIdx][checkIdx]) || {fields:['notes']};
   const checkLabels = step ? byLang(step, 'checks') : [];
   formOpen(formId, sopState.batch, {
-    fieldIds: link.fields || ['notes'],
+    fieldIds: formId === 'raw_material' ? null : (link.fields || ['notes']),
     link: link,
-    scopeTitle: Array.isArray(checkLabels) ? checkLabels[checkIdx] : ''
+    scopeTitle: Array.isArray(checkLabels) ? checkLabels[checkIdx] : '',
+    fullLinkedForm: formId === 'raw_material'
   });
 }
 function formOpen(formId, batchId, options) {
@@ -2692,6 +2693,10 @@ function formOpen(formId, batchId, options) {
         localText('只顯示此檢核項目的關聯欄位', 'Showing only fields linked to this check item', 'Chỉ hiển thị các trường liên quan đến hạng mục kiểm tra này') +
         (options.scopeTitle ? '：'+_esc(options.scopeTitle) : '') +
       '</div>'
+    : options.fullLinkedForm
+      ? '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #168a4a;border-radius:8px;background:#f2fbf5;color:#111;font-size:12px;font-weight:800;line-height:1.5">' +
+          localText('附件一已開放完整編輯，可調整所有原料驗收欄位。', 'Attachment 1 is open for full editing; all raw-material receipt fields can be adjusted.', 'Phụ lục 1 đang mở chế độ chỉnh sửa đầy đủ; có thể điều chỉnh tất cả trường tiếp nhận nguyên liệu.') +
+        '</div>'
     : '';
   const html =
     scopeNotice +

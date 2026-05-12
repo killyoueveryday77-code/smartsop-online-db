@@ -60,6 +60,13 @@
   .step-flow-row{display:flex;gap:8px;min-width:max-content}
   .step-flow-row .step-tile{flex:0 0 152px;min-width:152px}
   .step-title{font-size:13px;font-weight:700;margin-top:4px;line-height:1.25;white-space:nowrap}
+  .step-duration-editor{display:flex;align-items:center;gap:5px;margin-top:8px;font-size:11px;font-weight:800;color:var(--c-mute)}
+  .step-duration-input{width:52px;padding:3px 6px;border:1px solid var(--c-line);border-radius:7px;background:#fff;color:#111;font:inherit;font-size:11px;font-weight:900;text-align:right}
+  .step-duration-input:focus{outline:2px solid rgba(214,40,47,.25);border-color:#d6282f}
+  .step-duration-input:disabled{background:#f2f2f2;color:var(--c-mute);cursor:not-allowed}
+  .duration-edit-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;border:1px solid #d6282f;background:#fff;color:#d6282f;font-size:11px;font-weight:900}
+  .duration-edit-badge.locked{border-color:#777;background:#f7f7f7;color:var(--c-mute)}
+  .duration-lock-note{font-size:10px;font-weight:900;color:var(--c-mute);white-space:nowrap}
   .gauge-bar{height:8px;border-radius:4px;background:var(--c-line);overflow:hidden}
   .gauge-bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--c-accent2),var(--c-accent))}
   table.tbl{width:100%;border-collapse:collapse;font-size:13px}
@@ -1185,6 +1192,7 @@ let sopState = {
   signatures: SOP_STEPS.map(()=>null),
   signatureDrafts: SOP_STEPS.map(()=>null),
   checks: SOP_STEPS.map(s=> (s.checksZh||[]).map(()=>false)),
+  durations: SOP_STEPS.map(s=>Number(s.duration) || 0),
   batch:"MO-2026050408",
   shift:"08:00-16:00"
 };
@@ -1197,10 +1205,47 @@ function sopSetSignerName(value) {
   if (!sopState.signatureDrafts) sopState.signatureDrafts = SOP_STEPS.map(()=>null);
   sopState.signatureDrafts[sopState.current] = value;
 }
+function sopEnsureDurations() {
+  if (!Array.isArray(sopState.durations)) sopState.durations = [];
+  SOP_STEPS.forEach(function(step, i) {
+    const saved = Number(sopState.durations[i]);
+    sopState.durations[i] = Number.isFinite(saved) && saved >= 0 ? saved : (Number(step.duration) || 0);
+  });
+}
+function sopDuration(i) {
+  sopEnsureDurations();
+  return sopState.durations[i];
+}
+function sopStepChecked(i) {
+  const checks = sopState.checks && sopState.checks[i];
+  return Array.isArray(checks) && checks.length > 0 && checks.every(Boolean);
+}
+function sopDurationLocked(i) {
+  const status = sopState.status && sopState.status[i];
+  return status === "done" || status === "skipped" || sopStepChecked(i);
+}
+function sopDurationLockAttrs(i) {
+  return sopDurationLocked(i) ? ' disabled title="檢核後時間已鎖定"' : '';
+}
+function sopDurationLockNote(i) {
+  return sopDurationLocked(i) ? '<span class="duration-lock-note">已鎖定</span>' : '';
+}
+function sopSetDuration(i, value, rerender) {
+  if (sopDurationLocked(i)) {
+    if (rerender) renderSOP();
+    return;
+  }
+  const n = Math.max(0, Math.min(999, Math.round(Number(value) || 0)));
+  sopEnsureDurations();
+  sopState.durations[i] = n;
+  ssPersist();
+  if (rerender) renderSOP();
+}
 
 function renderSOP(){
   // mark current step active
   if(!sopState.status.some(s=>s==="active")) sopState.status[sopState.current] = "active";
+  sopEnsureDurations();
 
   const html = `
     <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:14px">
@@ -1223,6 +1268,13 @@ function renderSOP(){
                  onclick="sopGoto(${i})">
               <div style="font-size:10px;color:var(--c-mute);font-weight:700">STEP ${String(i+1).padStart(2,'0')}</div>
               <div class="step-title">${byLang(s,"title")}</div>
+              <div class="step-duration-editor ${sopDurationLocked(i)?'locked':''}" onclick="event.stopPropagation()">
+                <span>⏱</span>
+                <input class="step-duration-input" type="number" min="0" max="999" step="1" value="${sopDuration(i)}"
+                  oninput="sopSetDuration(${i},this.value,false)" onchange="sopSetDuration(${i},this.value,true)"${sopDurationLockAttrs(i)} />
+                <span>min</span>
+                ${sopDurationLockNote(i)}
+              </div>
               <div style="margin-top:6px;font-size:11px">
                 ${sopState.status[i]==='done'?'<span class="badge b-ok">✓</span>': sopState.status[i]==='active'?'<span class="badge b-info">●</span>': sopState.status[i]==='skipped'?'<span class="badge b-warn">⤴</span>':'<span class="badge" style="background:#f2f2f2;color:var(--c-mute);border:1px solid var(--c-line)">○</span>'}
                 ${s.dangerous?'<span class="badge b-bad">⚠</span>':''}
@@ -1262,7 +1314,10 @@ function renderSOPDetail(){
             <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
               ${s.dangerous?`<span class="badge b-bad">⚠ ${localText("高溫/危險步驟","Hazard","Nhiệt cao/nguy hiểm")}</span>`:""}
               <span class="ai-tag">AI ${localText("監督中","watching","đang giám sát")}</span>
-              ${s.duration?`<span class="badge b-info">⏱ ${s.duration} min</span>`:""}
+              <span class="duration-edit-badge ${sopDurationLocked(i)?'locked':''}" onclick="event.stopPropagation()">
+                ⏱ <input class="step-duration-input" type="number" min="0" max="999" step="1" value="${sopDuration(i)}"
+                  oninput="sopSetDuration(${i},this.value,false)" onchange="sopSetDuration(${i},this.value,true)"${sopDurationLockAttrs(i)} /> min ${sopDurationLockNote(i)}
+              </span>
             </div>
           </div>
 
@@ -1358,7 +1413,7 @@ function sopGoto(i){
 }
 function sopToggleCheck(ci){
   sopState.checks[sopState.current][ci] = !sopState.checks[sopState.current][ci];
-  renderSOPDetail();
+  renderSOP();
 }
 function sopComplete(){
   const i = sopState.current;
@@ -2133,6 +2188,7 @@ function applyPersistedState(d) {
   if (d.sopState && typeof sopState !== 'undefined') {
     Object.assign(sopState, d.sopState);
     if (!sopState.signatureDrafts) sopState.signatureDrafts = SOP_STEPS.map(()=>null);
+    sopEnsureDurations();
     if (!sopState.shift || sopState.shift === '早班') sopState.shift = '08:00-16:00';
     if (!sopState.batch || sopState.batch === 'B-2026050402' || sopState.batch === 'MO-2026050402') sopState.batch = 'MO-2026050408';
     workOrderOptions = uniqueOptions(workOrderOptions.concat(sopState.batch));
@@ -2552,6 +2608,17 @@ function formFieldInstruction(formId, fieldId) {
   }
   return localText('請依現場實測值、檢查結果或異常說明填寫。','Enter the on-site measured value, inspection result, or abnormal note.','Nhập giá trị đo tại hiện trường, kết quả kiểm tra hoặc ghi chú bất thường.');
 }
+function normalizeFormFieldIds(def, fieldIds) {
+  const valid = def.fields.map(function(f){ return f.id; });
+  if (!Array.isArray(fieldIds) || !fieldIds.length) return valid;
+  const seen = {};
+  const ids = fieldIds.filter(function(id) {
+    if (valid.indexOf(id) < 0 || seen[id]) return false;
+    seen[id] = true;
+    return true;
+  });
+  return ids.length ? ids : valid;
+}
 function checkRelationHtml(stepIdx, checkIdx) {
   const formId = SOP_FORMID[stepIdx];
   const formDef = FORM_DEFS[formId];
@@ -2575,20 +2642,35 @@ function checkRelationHtml(stepIdx, checkIdx) {
     '</div>' +
     '<div class="check-input-hint">'+_esc(localText('輸入說明：','Input: ','Nhập: ')+hint)+'</div>' +
     '<div class="check-actions">' +
-      '<button class="check-form-btn" onclick="event.stopPropagation();formOpen(\''+formId+'\',\''+sopState.batch+'\')">'+localText('填寫關聯表單','Fill linked form','Điền biểu mẫu liên quan')+'</button>' +
+      '<button class="check-form-btn" onclick="event.stopPropagation();formOpenCheck('+stepIdx+','+checkIdx+')">'+localText('填寫關聯表單','Fill linked form','Điền biểu mẫu liên quan')+'</button>' +
       '<button class="check-photo-btn" onclick="event.stopPropagation();takeCheckPhoto('+stepIdx+','+checkIdx+')">📸 '+localText('拍照','Photo','Chụp ảnh')+'</button>' +
       (photos.length ? '<span class="check-photo-count">📷 '+photos.length+'</span>' : '') +
     '</div>' +
     photoStrip;
 }
 
-function formOpen(formId, batchId) {
+function formOpenCheck(stepIdx, checkIdx) {
+  const formId = SOP_FORMID[stepIdx];
+  const step = SOP_STEPS[stepIdx];
+  const link = (SOP_CHECK_LINKS[stepIdx] && SOP_CHECK_LINKS[stepIdx][checkIdx]) || {fields:['notes']};
+  const checkLabels = step ? byLang(step, 'checks') : [];
+  formOpen(formId, sopState.batch, {
+    fieldIds: link.fields || ['notes'],
+    link: link,
+    scopeTitle: Array.isArray(checkLabels) ? checkLabels[checkIdx] : ''
+  });
+}
+function formOpen(formId, batchId, options) {
   const def = FORM_DEFS[formId];
   if (!def) { showToast('Form not found', 'bad'); return; }
+  options = options || {};
   const saved = (STATE.forms[batchId] && STATE.forms[batchId][formId]) || {};
-  const fhtml = def.fields.map(function(f) {
+  const visibleFieldIds = normalizeFormFieldIds(def, options.fieldIds);
+  const visibleFields = def.fields.filter(function(f){ return visibleFieldIds.indexOf(f.id) >= 0; });
+  const scoped = visibleFieldIds.length < def.fields.length;
+  const fhtml = visibleFields.map(function(f) {
     const v = saved[f.id] !== undefined ? saved[f.id] : (byLang(f,'def') || f.def || '');
-    const fieldHint = formFieldInstruction(formId, f.id);
+    const fieldHint = options.link ? (byLang(options.link, 'hint') || formFieldInstruction(formId, f.id)) : formFieldInstruction(formId, f.id);
     const labelHtml = '<label style="font-size:12px;color:var(--c-mute);font-weight:600">'+byLang(f,'label')+'</label>' +
       '<div style="font-size:11px;color:var(--c-mute);line-height:1.4;margin-top:3px;font-weight:700">'+_esc(localText('輸入說明：','Input: ','Nhập: ')+fieldHint)+'</div>';
     if (f.type === 'select') {
@@ -2604,7 +2686,15 @@ function formOpen(formId, batchId) {
     return '<div>'+labelHtml +
       '<input type="'+f.type+'" '+(f.step?'step="'+f.step+'"':'')+' id="ff_'+f.id+'" value="'+_esc(v)+'" style="width:100%;padding:10px;background:var(--c-panel2);border:1px solid var(--c-line);border-radius:8px;color:var(--c-text);margin-top:4px;font-family:inherit"/></div>';
   }).join('');
+  window._activeFormScope = {formId:formId, batchId:batchId, fieldIds:visibleFieldIds};
+  const scopeNotice = scoped
+    ? '<div style="margin-bottom:12px;padding:10px 12px;border:1px solid #d6282f;border-radius:8px;background:#fff7f7;color:#111;font-size:12px;font-weight:800;line-height:1.5">' +
+        localText('只顯示此檢核項目的關聯欄位', 'Showing only fields linked to this check item', 'Chỉ hiển thị các trường liên quan đến hạng mục kiểm tra này') +
+        (options.scopeTitle ? '：'+_esc(options.scopeTitle) : '') +
+      '</div>'
+    : '';
   const html =
+    scopeNotice +
     '<div style="font-size:12px;color:var(--c-mute);margin-bottom:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:10px 12px;background:#f7f7f7;border-radius:8px">' +
       '<span>'+t('common.batch')+': <b style="color:var(--c-text)">'+batchId+'</b></span>' +
       '<span>'+localText('時間','Time','Thời gian')+': <b style="color:var(--c-text)">'+nowFull()+'</b></span>' +
@@ -2619,8 +2709,15 @@ function formOpen(formId, batchId) {
   openModal(html, {title:'📄 '+byLang(def,'title'), width:'780px'});
 }
 function formSave(formId, batchId) {
-  const def = FORM_DEFS[formId]; const data = {};
+  const def = FORM_DEFS[formId];
+  const existing = (STATE.forms[batchId] && STATE.forms[batchId][formId]) || {};
+  const scope = window._activeFormScope;
+  const fieldIds = scope && scope.formId === formId && scope.batchId === batchId
+    ? scope.fieldIds
+    : def.fields.map(function(f){ return f.id; });
+  const data = Object.assign({}, existing);
   def.fields.forEach(function(f){
+    if (fieldIds.indexOf(f.id) < 0) return;
     const el = document.getElementById('ff_'+f.id);
     data[f.id] = el ? el.value : '';
   });
@@ -2630,6 +2727,7 @@ function formSave(formId, batchId) {
   STATE.forms[batchId][formId] = data;
   ssPersist();
   closeModal(document.querySelector('.modal-bg'));
+  window._activeFormScope = null;
   showToast('💾 '+localText('已儲存並簽核','Saved & signed','Đã lưu và ký'), 'ok');
 }
 
@@ -2799,11 +2897,12 @@ let operatorCameraState = {
   poseError:false
 };
 function operatorMonitorHtml(stepIdx, step) {
+  const duration = typeof sopDuration === 'function' ? sopDuration(stepIdx) : ((step && step.duration) || 5);
   return '<div class="panel" style="padding:18px;margin-bottom:14px">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px">' +
       '<div><div style="font-weight:800">🎥 '+localText('AI 作業員動作監督','AI operator motion monitor','AI giám sát thao tác nhân viên')+'</div>' +
       '<div style="font-size:12px;color:var(--c-mute);margin-top:3px">'+localText('鏡頭保持開啟，持續分析站位、手部動作與步驟節奏。','Camera stays on to analyze position, hand motion and step pace.','Camera luôn bật để phân tích vị trí, thao tác tay và nhịp bước.')+'</div></div>' +
-      '<span class="badge b-info">⏱ '+((step && step.duration) || 5)+' min</span>' +
+      '<span class="badge b-info">⏱ '+duration+' min</span>' +
     '</div>' +
 	    '<div class="operator-camera-stage">' +
 	      '<video id="operatorCameraVideo" autoplay playsinline muted></video>' +
@@ -3702,6 +3801,7 @@ function notifClear() { STATE.notifications = []; ssPersist(); closeModal(docume
 window.renderSOPDetail = function() {
   const i = sopState.current;
   const s = SOP_STEPS[i];
+  sopEnsureDurations();
   const checks = sopState.checks[i];
   const checkLabels = byLang(s,'checks');
   const params = byLang(s,'params');
@@ -3729,7 +3829,7 @@ window.renderSOPDetail = function() {
           '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">' +
             (s.dangerous?'<span class="badge b-bad">⚠ '+localText('高溫/危險','Hazard','Nhiệt cao/nguy hiểm')+'</span>':'') +
             '<span class="ai-tag">AI '+localText('監督中','watching','đang giám sát')+'</span>' +
-            (s.duration?'<span class="badge b-info">⏱ '+s.duration+' min</span>':'') +
+            '<span class="duration-edit-badge'+(sopDurationLocked(i)?' locked':'')+'" onclick="event.stopPropagation()">⏱ <input class="step-duration-input" type="number" min="0" max="999" step="1" value="'+sopDuration(i)+'" oninput="sopSetDuration('+i+',this.value,false)" onchange="sopSetDuration('+i+',this.value,true)"'+sopDurationLockAttrs(i)+' /> min '+sopDurationLockNote(i)+'</span>' +
           '</div></div>' +
         (s.aiZh?'<div style="margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(214,40,47,.12),rgba(214,40,47,.06));border:1px solid rgba(214,40,47,.4)">' +
           '<div style="font-size:12px;color:#ffd7d7;font-weight:700;margin-bottom:4px">🤖 '+localText('AI 即時建議','AI insight','Gợi ý AI tức thời')+'</div>' +

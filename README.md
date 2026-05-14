@@ -35,6 +35,7 @@ This repo includes `render.yaml` for Render deployment with a persistent SQLite 
 2. Add a Volume to the web service so SQLite survives redeploys.
 3. Set the Volume mount path to `/app/data`, or leave Railway's generated mount path and the app will use `RAILWAY_VOLUME_MOUNT_PATH`.
 4. Generate a Railway public domain from Settings -> Networking -> Public Networking.
+5. For CLI deploys from a non-interactive environment, set `RAILWAY_TOKEN` or `RAILWAY_API_TOKEN`.
 
 The repo includes `railway.json` with:
 
@@ -47,6 +48,19 @@ Start command:
 
 ```bash
 npm start
+```
+
+Manual CLI deploy:
+
+```powershell
+$env:RAILWAY_TOKEN="your-token"
+.\scripts\deploy-railway.ps1
+```
+
+If the local directory is not linked to the Railway project, pass IDs from the Railway dashboard:
+
+```powershell
+.\scripts\deploy-railway.ps1 -Project "<project-id>" -Service "<service-id>" -Environment "production"
 ```
 
 The SQLite database is created at:

@@ -40,7 +40,16 @@ seedContext.run("MO-2026050408", "08:00-16:00");
 app.use(express.json({ limit: "5mb" }));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, database: "sqlite", now: new Date().toISOString() });
+  res.json({
+    ok: true,
+    database: "sqlite",
+    now: new Date().toISOString(),
+    railway: {
+      commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+      branch: process.env.RAILWAY_GIT_BRANCH || null,
+      deploymentId: process.env.RAILWAY_DEPLOYMENT_ID || null
+    }
+  });
 });
 
 app.get("/api/contexts", (_req, res) => {

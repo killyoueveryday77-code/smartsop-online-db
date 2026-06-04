@@ -189,6 +189,12 @@
             style="width:100%;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--c-line);color:var(--c-text);font-family:inherit;font-size:13px" />
         </div>
         <div>
+          <label style="display:block;font-size:12px;color:var(--c-mute);font-weight:700;margin-bottom:5px" data-i18n="login.line">產線</label>
+          <input id="loginLine" value="TG-009產線" list="loginLineOptions" placeholder="請選擇或輸入產線"
+            style="width:100%;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--c-line);color:var(--c-text);font-family:inherit;font-size:13px" />
+          <datalist id="loginLineOptions"></datalist>
+        </div>
+        <div style="grid-column:1/-1">
           <label style="display:block;font-size:12px;color:var(--c-mute);font-weight:700;margin-bottom:5px" data-i18n="login.shift">班別</label>
           <input id="loginShift" value="08:00-16:00" placeholder="請輸入起訖時間，例如 08:00-16:00"
             style="width:100%;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--c-line);color:var(--c-text);font-family:inherit;font-size:13px" />
@@ -325,6 +331,7 @@ const I18N = {
     "login.subtitle":"膨化食品生產製程 SOP 數位化與 AI 智慧稽核平台",
     "login.order":"製令單號","login.order.placeholder":"請輸入製令單號",
     "login.shift":"班別","login.shift.placeholder":"請輸入起訖時間，例如 08:00-16:00",
+    "login.line":"產線","login.line.placeholder":"請選擇或輸入產線",
     "login.next":"創建","login.back":"返回",
     "login.existing":"選擇已創建製令單號","login.useExisting":"使用",
     "login.choose":"請選擇登入身分以體驗對應角色介面",
@@ -389,6 +396,7 @@ const I18N = {
     "login.subtitle":"Food Process SOP Digitalization & AI Smart Audit Platform",
     "login.order":"Work order","login.order.placeholder":"Enter work order number",
     "login.shift":"Shift","login.shift.placeholder":"Enter time range, e.g. 08:00-16:00",
+    "login.line":"Line","login.line.placeholder":"Select or enter production line",
     "login.next":"Create","login.back":"Back",
     "login.existing":"Select existing work order","login.useExisting":"Use",
     "login.choose":"Choose a role to experience the corresponding interface",
@@ -443,6 +451,7 @@ const I18N = {
     "login.subtitle":"Nền tảng số hóa SOP quy trình sản xuất thực phẩm phồng và kiểm tra thông minh bằng AI",
     "login.order":"Mã lệnh sản xuất","login.order.placeholder":"Nhập mã lệnh sản xuất",
     "login.shift":"Ca","login.shift.placeholder":"Nhập thời gian, ví dụ 08:00-16:00",
+    "login.line":"Dây chuyền","login.line.placeholder":"Chọn hoặc nhập dây chuyền",
     "login.next":"Tạo","login.back":"Quay lại",
     "login.existing":"Chọn lệnh sản xuất đã tạo","login.useExisting":"Dùng",
     "login.choose":"Chọn vai trò đăng nhập để trải nghiệm giao diện tương ứng",
@@ -547,6 +556,7 @@ function applyI18n(){
   document.querySelectorAll("#loginLangSelect,#topLangSelect,#settingsLangSelect").forEach(el=>{ el.value = LANG; });
   document.getElementById("loginOrderNo") && (document.getElementById("loginOrderNo").placeholder = t("login.order.placeholder"));
   document.getElementById("loginShift") && (document.getElementById("loginShift").placeholder = t("login.shift.placeholder"));
+  document.getElementById("loginLine") && (document.getElementById("loginLine").placeholder = t("login.line.placeholder"));
   document.getElementById("userPill") && (document.getElementById("userPill").title = t("nav.logout"));
   if(currentUser && document.getElementById("userName")) {
     document.getElementById("userName").textContent = roleName(currentUser);
@@ -592,31 +602,35 @@ const PAGE_RENDERERS = {
 };
 const roleLanding = (role) => (ROLE_PERMISSIONS[role] && ROLE_PERMISSIONS[role][0]) || "dashboard";
 const canAccessPage = (page) => !currentUser || (ROLE_PERMISSIONS[currentUser] || []).includes(page);
-const lineName = () => localText("TG-009產線", "TG-009 Line", "Dây chuyền TG-009");
+const defaultLineName = () => localText("TG-009產線", "TG-009 Line", "Dây chuyền TG-009");
+const lineName = () => (sopState && sopState.line) || defaultLineName();
 let workOrderOptions = ["MO-2026050408"];
 let shiftOptions = ["08:00-16:00"];
-let productionContexts = [{order:"MO-2026050408", shift:"08:00-16:00"}];
+let lineOptions = ["TG-009產線"];
+let productionContexts = [{order:"MO-2026050408", shift:"08:00-16:00", line:"TG-009產線"}];
 function uniqueOptions(list) {
   return Array.from(new Set((list || []).map(v => String(v || "").trim()).filter(Boolean)));
 }
 function contextKey(ctx) {
-  return String((ctx && ctx.order) || "") + "||" + String((ctx && ctx.shift) || "");
+  return String((ctx && ctx.order) || "") + "||" + String((ctx && ctx.shift) || "") + "||" + String((ctx && ctx.line) || "");
 }
 function normalizeContext(ctx) {
   return {
     order: String((ctx && ctx.order) || "").trim(),
-    shift: String((ctx && ctx.shift) || "").trim()
+    shift: String((ctx && ctx.shift) || "").trim(),
+    line: String((ctx && ctx.line) || "").trim() || "TG-009產線"
   };
 }
 function syncProductionContexts() {
   const map = {};
-  productionContexts.concat([{order:sopState.batch || "MO-2026050408", shift:sopState.shift || "08:00-16:00"}])
+  productionContexts.concat([{order:sopState.batch || "MO-2026050408", shift:sopState.shift || "08:00-16:00", line:sopState.line || "TG-009產線"}])
     .map(normalizeContext)
-    .filter(ctx => ctx.order && ctx.shift)
+    .filter(ctx => ctx.order && ctx.shift && ctx.line)
     .forEach(ctx => { map[contextKey(ctx)] = ctx; });
   productionContexts = Object.values(map);
   workOrderOptions = uniqueOptions(productionContexts.map(ctx => ctx.order).concat(workOrderOptions));
   shiftOptions = uniqueOptions(productionContexts.map(ctx => ctx.shift).concat(shiftOptions));
+  lineOptions = uniqueOptions(productionContexts.map(ctx => ctx.line).concat(lineOptions));
 }
 function fillSelectOptions(selectEl, options, selectedValue) {
   if(!selectEl) return;
@@ -627,13 +641,17 @@ function fillSelectOptions(selectEl, options, selectedValue) {
 }
 function addSelectableOption(kind) {
   const isOrder = kind === "order";
-  const label = isOrder ? t("login.order") : t("login.shift");
-  const example = isOrder ? "MO-2026050408" : "08:00-16:00";
+  const isLine = kind === "line";
+  const label = isOrder ? t("login.order") : isLine ? t("login.line") : t("login.shift");
+  const example = isOrder ? "MO-2026050408" : isLine ? "TG-009產線" : "08:00-16:00";
   const value = (prompt(localText("新增", "Add", "Thêm") + " " + label, example) || "").trim();
   if(!value) return;
   if(isOrder) {
     workOrderOptions = uniqueOptions(workOrderOptions.concat(value));
     sopState.batch = value;
+  } else if(isLine) {
+    lineOptions = uniqueOptions(lineOptions.concat(value));
+    sopState.line = value;
   } else {
     shiftOptions = uniqueOptions(shiftOptions.concat(value));
     sopState.shift = value;
@@ -641,23 +659,31 @@ function addSelectableOption(kind) {
   syncLoginContextInputs();
   ssPersist();
   renderSessionContext();
-  dbSaveContext(sopState.batch, sopState.shift);
+  dbSaveContext(sopState.batch, sopState.shift, sopState.line);
   if(currentUser) navigate(currentPage);
 }
 function addWorkOrderOption(){ addSelectableOption("order"); }
 function addShiftOption(){ addSelectableOption("shift"); }
+function addLineOption(){ addSelectableOption("line"); }
 function updateWorkOrder(value) {
   sopState.batch = String(value || "").trim() || "MO-2026050408";
   workOrderOptions = uniqueOptions(workOrderOptions.concat(sopState.batch));
   ssPersist();
-  dbSaveContext(sopState.batch, sopState.shift);
+  dbSaveContext(sopState.batch, sopState.shift, sopState.line);
   if(currentUser) navigate(currentPage);
 }
 function updateShift(value) {
   sopState.shift = String(value || "").trim() || "08:00-16:00";
   shiftOptions = uniqueOptions(shiftOptions.concat(sopState.shift));
   ssPersist();
-  dbSaveContext(sopState.batch, sopState.shift);
+  dbSaveContext(sopState.batch, sopState.shift, sopState.line);
+  if(currentUser) navigate(currentPage);
+}
+function updateLine(value) {
+  sopState.line = String(value || "").trim() || "TG-009產線";
+  lineOptions = uniqueOptions(lineOptions.concat(sopState.line));
+  ssPersist();
+  dbSaveContext(sopState.batch, sopState.shift, sopState.line);
   if(currentUser) navigate(currentPage);
 }
 function setProductionContext(value) {
@@ -665,8 +691,9 @@ function setProductionContext(value) {
   if(!ctx) return;
   sopState.batch = ctx.order;
   sopState.shift = ctx.shift;
+  sopState.line = ctx.line;
   ssPersist();
-  dbSaveContext(sopState.batch, sopState.shift);
+  dbSaveContext(sopState.batch, sopState.shift, sopState.line);
   if(currentUser) navigate(currentPage);
 }
 
@@ -684,16 +711,19 @@ function renderSessionContext(){
     return;
   }
   syncProductionContexts();
-  const selectedKey = contextKey({order:sopState.batch || "MO-2026050408", shift:sopState.shift || "08:00-16:00"});
+  const selectedKey = contextKey({order:sopState.batch || "MO-2026050408", shift:sopState.shift || "08:00-16:00", line:sopState.line || "TG-009產線"});
   const contextOptions = productionContexts.map(ctx =>
-    '<option value="'+_esc(contextKey(ctx))+'" '+(contextKey(ctx)===selectedKey?'selected':'')+'>'+ctx.order+'</option>'
+    '<option value="'+_esc(contextKey(ctx))+'" '+(contextKey(ctx)===selectedKey?'selected':'')+'>'+ctx.order+' · '+ctx.line+'</option>'
   ).join('');
+  const lineSelectOptions = uniqueOptions([sopState.line || "TG-009產線"].concat(lineOptions)).map(function(line) {
+    return '<option value="'+_esc(line)+'" '+(line === (sopState.line || "TG-009產線") ? 'selected' : '')+'>'+line+'</option>';
+  }).join('');
   bar.innerHTML =
     '<div class="panel2 context-grid">' +
       '<div style="min-width:0"><div style="font-size:11px;color:var(--c-mute);font-weight:700;margin-bottom:4px">'+t("sop.batch")+'</div>' +
         '<select class="lang-select" style="width:100%;height:34px;font-size:13px" onchange="setProductionContext(this.value)">'+contextOptions+'</select></div>' +
       '<div style="min-width:0"><div style="font-size:11px;color:var(--c-mute);font-weight:700;margin-bottom:4px">'+t("sop.line")+'</div>' +
-        '<div style="height:34px;display:flex;align-items:center;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+lineName()+'</div></div>' +
+        '<select class="lang-select" style="width:100%;height:34px;font-size:13px" onchange="updateLine(this.value)">'+lineSelectOptions+'</select></div>' +
       '<div style="min-width:0"><div style="font-size:11px;color:var(--c-mute);font-weight:700;margin-bottom:4px">'+t("sop.shift")+'</div>' +
         '<div style="height:34px;display:flex;align-items:center;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(sopState.shift || "08:00-16:00")+'</div></div>' +
       '<div style="min-width:0"><div style="font-size:11px;color:var(--c-mute);font-weight:700;margin-bottom:4px">'+localText("登入身分", "Login role", "Vai trò đăng nhập")+'</div>' +
@@ -703,17 +733,23 @@ function renderSessionContext(){
 function syncLoginContextInputs(){
   const orderEl = document.getElementById("loginOrderNo");
   const shiftEl = document.getElementById("loginShift");
+  const lineEl = document.getElementById("loginLine");
+  const lineListEl = document.getElementById("loginLineOptions");
   if(orderEl) orderEl.value = sopState.batch || "MO-2026050408";
   if(shiftEl) shiftEl.value = sopState.shift || "08:00-16:00";
+  if(lineEl) lineEl.value = sopState.line || "TG-009產線";
+  if(lineListEl) lineListEl.innerHTML = uniqueOptions([sopState.line || "TG-009產線"].concat(lineOptions)).map(function(line) {
+    return '<option value="'+_esc(line)+'"></option>';
+  }).join('');
   syncExistingContextSelect();
 }
 function syncExistingContextSelect(){
   const selectEl = document.getElementById("existingContextSelect");
   if(!selectEl) return;
   syncProductionContexts();
-  const selectedKey = contextKey({order:sopState.batch || "MO-2026050408", shift:sopState.shift || "08:00-16:00"});
+  const selectedKey = contextKey({order:sopState.batch || "MO-2026050408", shift:sopState.shift || "08:00-16:00", line:sopState.line || "TG-009產線"});
   selectEl.innerHTML = productionContexts.map(ctx =>
-    '<option value="'+_esc(contextKey(ctx))+'" '+(contextKey(ctx)===selectedKey?'selected':'')+'>'+ctx.order+'</option>'
+    '<option value="'+_esc(contextKey(ctx))+'" '+(contextKey(ctx)===selectedKey?'selected':'')+'>'+ctx.order+' · '+ctx.line+' · '+ctx.shift+'</option>'
   ).join('');
 }
 function useExistingContext(){
@@ -723,9 +759,10 @@ function useExistingContext(){
   if(!ctx) return;
   sopState.batch = ctx.order;
   sopState.shift = ctx.shift;
+  sopState.line = ctx.line;
   ssPersist();
   syncLoginContextInputs();
-  dbSaveContext(sopState.batch, sopState.shift);
+  dbSaveContext(sopState.batch, sopState.shift, sopState.line);
   showLoginStep("role");
 }
 function showLoginStep(step) {
@@ -737,14 +774,17 @@ function showLoginStep(step) {
 function applyLoginContext(){
   const orderEl = document.getElementById("loginOrderNo");
   const shiftEl = document.getElementById("loginShift");
+  const lineEl = document.getElementById("loginLine");
   sopState.batch = ((orderEl && orderEl.value) || "").trim() || "MO-2026050408";
   sopState.shift = ((shiftEl && shiftEl.value) || "").trim() || "08:00-16:00";
+  sopState.line = ((lineEl && lineEl.value) || "").trim() || "TG-009產線";
   workOrderOptions = uniqueOptions(workOrderOptions.concat(sopState.batch));
   shiftOptions = uniqueOptions(shiftOptions.concat(sopState.shift));
-  productionContexts = productionContexts.concat({order:sopState.batch, shift:sopState.shift});
+  lineOptions = uniqueOptions(lineOptions.concat(sopState.line));
+  productionContexts = productionContexts.concat({order:sopState.batch, shift:sopState.shift, line:sopState.line});
   syncProductionContexts();
   ssPersist();
-  dbSaveContext(sopState.batch, sopState.shift);
+  dbSaveContext(sopState.batch, sopState.shift, sopState.line);
 }
 function loginNextStep(){
   applyLoginContext();
@@ -1195,6 +1235,7 @@ let sopState = {
   checks: SOP_STEPS.map(s=> (s.checksZh||[]).map(()=>false)),
   durations: SOP_STEPS.map(s=>Number(s.duration) || 0),
   batch:"MO-2026050408",
+  line:"TG-009產線",
   shift:"08:00-16:00"
 };
 
@@ -2176,7 +2217,7 @@ function persistentPayload() {
     photos: STATE.photos, auditRecords: STATE.auditRecords, signatureRecords: STATE.signatureRecords, sopState, equipment: STATE.equipment,
     equipmentHistory: STATE.equipmentHistory, equipmentSource: STATE.equipmentSource,
     aiEvents: STATE.aiEvents, notifications: STATE.notifications,
-    workOrderOptions, shiftOptions, productionContexts
+    workOrderOptions, shiftOptions, lineOptions, productionContexts
   };
 }
 
@@ -2205,15 +2246,18 @@ function applyPersistedState(d) {
   if (d.notifications) STATE.notifications = d.notifications;
   if (d.workOrderOptions) workOrderOptions = uniqueOptions(d.workOrderOptions.concat(workOrderOptions));
   if (d.shiftOptions) shiftOptions = uniqueOptions(d.shiftOptions.concat(shiftOptions));
+  if (d.lineOptions) lineOptions = uniqueOptions(d.lineOptions.concat(lineOptions));
   if (d.productionContexts) productionContexts = d.productionContexts.concat(productionContexts).map(normalizeContext);
   if (d.sopState && typeof sopState !== 'undefined') {
     Object.assign(sopState, d.sopState);
     if (!sopState.signatureDrafts) sopState.signatureDrafts = SOP_STEPS.map(()=>null);
     sopEnsureDurations();
     if (!sopState.shift || sopState.shift === '早班') sopState.shift = '08:00-16:00';
+    if (!sopState.line) sopState.line = 'TG-009產線';
     if (!sopState.batch || sopState.batch === 'B-2026050402' || sopState.batch === 'MO-2026050402') sopState.batch = 'MO-2026050408';
     workOrderOptions = uniqueOptions(workOrderOptions.concat(sopState.batch));
     shiftOptions = uniqueOptions(shiftOptions.concat(sopState.shift));
+    lineOptions = uniqueOptions(lineOptions.concat(sopState.line));
   }
   syncProductionContexts();
 }
@@ -2290,7 +2334,7 @@ async function dbLoadContexts() {
   const data = await dbRequest("/api/contexts");
   if (!data || !Array.isArray(data.contexts)) return;
   productionContexts = data.contexts
-    .map(item => ({order: item.orderNo, shift: item.shift}))
+    .map(item => ({order: item.orderNo, shift: item.shift, line: item.line || "TG-009產線"}))
     .concat(productionContexts)
     .map(normalizeContext);
   syncProductionContexts();
@@ -2320,14 +2364,15 @@ async function dbLoadSignatures() {
   return true;
 }
 
-async function dbSaveContext(orderNo, shift) {
+async function dbSaveContext(orderNo, shift, line) {
   orderNo = String(orderNo || "").trim();
   shift = String(shift || "").trim();
+  line = String(line || "").trim() || "TG-009產線";
   if (!orderNo || !shift) return;
   await dbRequest("/api/contexts", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({orderNo, shift})
+    body: JSON.stringify({orderNo, shift, line})
   });
 }
 
@@ -2781,10 +2826,11 @@ function formSave(formId, batchId, mode) {
   ssPersist();
   if (mode === 'sign') {
     apiSaveSignature({
-      kind:"form",
-      batchId:batchId,
-      shift:sopState.shift,
-      formId:formId,
+    kind:"form",
+    batchId:batchId,
+    shift:sopState.shift,
+    line:sopState.line,
+    formId:formId,
       signer:data._signedBy,
       role:auditOperatorName(),
       status:"signed",
@@ -2792,6 +2838,7 @@ function formSave(formId, batchId, mode) {
       statement:"I confirm this electronic form was completed, reviewed, and electronically signed.",
       payload:{
         formTitle:def.titleEn || def.titleZh || formId,
+        line:sopState.line,
         form:data,
         appUrl:location.href
       }
@@ -3956,6 +4003,7 @@ function sopStepSignaturePayload(stepIdx, signature) {
     stepTitle: step.titleEn || step.titleZh || "",
     stepTitleZh: step.titleZh || "",
     signedAtLocal: signature && signature.at,
+    line: sopState.line,
     checks: sopState.checks[stepIdx] || [],
     duration: sopDuration(stepIdx),
     status: sopState.status[stepIdx],
@@ -3974,6 +4022,7 @@ async function saveSopSignatureOnline(stepIdx) {
     kind:"sop-step",
     batchId:sopState.batch,
     shift:sopState.shift,
+    line:sopState.line,
     stepIdx:stepIdx,
     signer:signature.who,
     role:auditOperatorName(),

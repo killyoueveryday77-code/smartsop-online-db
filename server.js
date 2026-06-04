@@ -21,8 +21,9 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_no TEXT NOT NULL,
     shift TEXT NOT NULL,
+    line_no TEXT NOT NULL DEFAULT 'TG-009產線',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(order_no, shift)
+    UNIQUE(order_no, shift, line_no)
   );
 
   CREATE TABLE IF NOT EXISTS app_state (
@@ -77,6 +78,7 @@ db.exec(`
     kind TEXT NOT NULL,
     batch_id TEXT,
     shift TEXT,
+    line_no TEXT,
     step_idx INTEGER,
     form_id TEXT,
     signer TEXT NOT NULL,
@@ -94,11 +96,43 @@ db.exec(`
     ON signature_records(batch_id, step_idx, created_at DESC);
 `);
 
+function migrateProductionContexts() {
+  const columns = db.prepare("PRAGMA table_info(production_contexts)").all();
+  if (columns.some((column) => column.name === "line_no")) return;
+  db.exec(`
+    CREATE TABLE production_contexts_next (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_no TEXT NOT NULL,
+      shift TEXT NOT NULL,
+      line_no TEXT NOT NULL DEFAULT 'TG-009產線',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(order_no, shift, line_no)
+    );
+
+    INSERT OR IGNORE INTO production_contexts_next (id, order_no, shift, line_no, created_at)
+    SELECT id, order_no, shift, 'TG-009產線', created_at
+    FROM production_contexts;
+
+    DROP TABLE production_contexts;
+    ALTER TABLE production_contexts_next RENAME TO production_contexts;
+  `);
+}
+
+migrateProductionContexts();
+
+function migrateSignatureRecords() {
+  const columns = db.prepare("PRAGMA table_info(signature_records)").all();
+  if (!columns.length || columns.some((column) => column.name === "line_no")) return;
+  db.exec("ALTER TABLE signature_records ADD COLUMN line_no TEXT");
+}
+
+migrateSignatureRecords();
+
 const seedContext = db.prepare(`
-  INSERT OR IGNORE INTO production_contexts (order_no, shift)
-  VALUES (?, ?)
+  INSERT OR IGNORE INTO production_contexts (order_no, shift, line_no)
+  VALUES (?, ?, ?)
 `);
-seedContext.run("MO-2026050408", "08:00-16:00");
+seedContext.run("MO-2026050408", "08:00-16:00", "TG-009產線");
 
 app.use(express.json({ limit: process.env.JSON_LIMIT || "25mb" }));
 
@@ -120,6 +154,10 @@ function normalizeIsoDate(value) {
 function numericOrNull(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function normalizeLine(value) {
+  return String(value || "").trim() || "TG-009產線";
 }
 
 function requireIngestToken(req, res) {
@@ -256,6 +294,7 @@ function signatureRowToRecord(row) {
     kind: row.kind,
     batchId: row.batch_id,
     shift: row.shift,
+    line: row.line_no,
     stepIdx: row.step_idx,
     formId: row.form_id,
     signer: row.signer,
@@ -341,7 +380,7 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/api/contexts", (_req, res) => {
   const rows = db.prepare(`
-    SELECT id, order_no AS orderNo, shift, created_at AS createdAt
+    SELECT id, order_no AS orderNo, shift, line_no AS line, created_at AS createdAt
     FROM production_contexts
     ORDER BY id DESC
   `).all();
@@ -351,21 +390,22 @@ app.get("/api/contexts", (_req, res) => {
 app.post("/api/contexts", (req, res) => {
   const orderNo = String(req.body.orderNo || "").trim();
   const shift = String(req.body.shift || "").trim();
+  const line = normalizeLine(req.body.line || req.body.lineNo);
   if (!orderNo || !shift) {
     res.status(400).json({ error: "orderNo and shift are required" });
     return;
   }
 
   db.prepare(`
-    INSERT OR IGNORE INTO production_contexts (order_no, shift)
-    VALUES (?, ?)
-  `).run(orderNo, shift);
+    INSERT OR IGNORE INTO production_contexts (order_no, shift, line_no)
+    VALUES (?, ?, ?)
+  `).run(orderNo, shift, line);
 
   const row = db.prepare(`
-    SELECT id, order_no AS orderNo, shift, created_at AS createdAt
+    SELECT id, order_no AS orderNo, shift, line_no AS line, created_at AS createdAt
     FROM production_contexts
-    WHERE order_no = ? AND shift = ?
-  `).get(orderNo, shift);
+    WHERE order_no = ? AND shift = ? AND line_no = ?
+  `).get(orderNo, shift, line);
   res.status(201).json({ context: row });
 });
 
@@ -463,6 +503,7 @@ app.post("/api/signatures", (req, res) => {
     kind: String(body.kind || "sop-step"),
     batchId: body.batchId ? String(body.batchId) : null,
     shift: body.shift ? String(body.shift) : null,
+    line: normalizeLine(body.line),
     stepIdx: Number.isInteger(body.stepIdx) ? body.stepIdx : numericOrNull(body.stepIdx),
     formId: body.formId ? String(body.formId) : null,
     signer,
@@ -477,11 +518,11 @@ app.post("/api/signatures", (req, res) => {
   const transaction = db.transaction(() => {
     const signatureResult = db.prepare(`
       INSERT INTO signature_records (
-        kind, batch_id, shift, step_idx, form_id, signer, role, status,
+        kind, batch_id, shift, line_no, step_idx, form_id, signer, role, status,
         signature_text, signature_hash, statement, payload
       )
       VALUES (
-        @kind, @batchId, @shift, @stepIdx, @formId, @signer, @role, @status,
+        @kind, @batchId, @shift, @line, @stepIdx, @formId, @signer, @role, @status,
         @signatureText, @signatureHash, @statement, @payload
       )
     `).run({
@@ -507,6 +548,7 @@ app.post("/api/signatures", (req, res) => {
       parameters: JSON.stringify({
         kind: canonical.kind,
         shift: canonical.shift,
+        line: canonical.line,
         formId: canonical.formId,
         signatureHash
       }),

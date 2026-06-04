@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
+const crypto = require("crypto");
 const Database = require("better-sqlite3");
 
 const app = express();
@@ -69,6 +70,28 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_equipment_readings_equipment_time
     ON equipment_readings(equipment_id, reading_at DESC);
+
+  CREATE TABLE IF NOT EXISTS signature_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    kind TEXT NOT NULL,
+    batch_id TEXT,
+    shift TEXT,
+    step_idx INTEGER,
+    form_id TEXT,
+    signer TEXT NOT NULL,
+    role TEXT,
+    status TEXT NOT NULL DEFAULT 'signed',
+    signature_text TEXT,
+    signature_hash TEXT NOT NULL,
+    statement TEXT,
+    payload TEXT
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_signature_records_batch
+    ON signature_records(batch_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_signature_records_step
+    ON signature_records(batch_id, step_idx, created_at DESC);
 `);
 
 const seedContext = db.prepare(`
@@ -226,6 +249,32 @@ function auditRowToRecord(row) {
   };
 }
 
+function signatureRowToRecord(row) {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    kind: row.kind,
+    batchId: row.batch_id,
+    shift: row.shift,
+    stepIdx: row.step_idx,
+    formId: row.form_id,
+    signer: row.signer,
+    role: row.role,
+    status: row.status,
+    signatureText: row.signature_text,
+    signatureHash: row.signature_hash,
+    statement: row.statement,
+    payload: parseJson(row.payload, null)
+  };
+}
+
+function buildSignatureHash(record) {
+  return crypto
+    .createHash("sha256")
+    .update(JSON.stringify(record))
+    .digest("hex");
+}
+
 async function readExternalEquipmentSource() {
   if (process.env.EQUIPMENT_SOURCE_URL) {
     const response = await fetch(process.env.EQUIPMENT_SOURCE_URL, {
@@ -379,6 +428,102 @@ app.post("/api/audit/records", (req, res) => {
 
   const row = db.prepare("SELECT * FROM audit_records WHERE id = ?").get(result.lastInsertRowid);
   res.status(201).json({ record: auditRowToRecord(row) });
+});
+
+app.get("/api/signatures", (req, res) => {
+  const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 100));
+  const batchId = String(req.query.batchId || "").trim();
+  const rows = batchId
+    ? db.prepare(`
+        SELECT *
+        FROM signature_records
+        WHERE batch_id = ?
+        ORDER BY id DESC
+        LIMIT ?
+      `).all(batchId, limit)
+    : db.prepare(`
+        SELECT *
+        FROM signature_records
+        ORDER BY id DESC
+        LIMIT ?
+      `).all(limit);
+  res.json({ signatures: rows.map(signatureRowToRecord) });
+});
+
+app.post("/api/signatures", (req, res) => {
+  const body = req.body || {};
+  const signer = String(body.signer || "").trim();
+  if (!signer) {
+    res.status(400).json({ error: "signer is required" });
+    return;
+  }
+
+  const payload = body.payload || {};
+  const canonical = {
+    kind: String(body.kind || "sop-step"),
+    batchId: body.batchId ? String(body.batchId) : null,
+    shift: body.shift ? String(body.shift) : null,
+    stepIdx: Number.isInteger(body.stepIdx) ? body.stepIdx : numericOrNull(body.stepIdx),
+    formId: body.formId ? String(body.formId) : null,
+    signer,
+    role: body.role ? String(body.role) : null,
+    status: String(body.status || "signed"),
+    signatureText: body.signatureText ? String(body.signatureText) : signer,
+    statement: body.statement ? String(body.statement) : "I confirm this SOP step was completed and reviewed.",
+    payload
+  };
+  const signatureHash = buildSignatureHash(canonical);
+
+  const transaction = db.transaction(() => {
+    const signatureResult = db.prepare(`
+      INSERT INTO signature_records (
+        kind, batch_id, shift, step_idx, form_id, signer, role, status,
+        signature_text, signature_hash, statement, payload
+      )
+      VALUES (
+        @kind, @batchId, @shift, @stepIdx, @formId, @signer, @role, @status,
+        @signatureText, @signatureHash, @statement, @payload
+      )
+    `).run({
+      ...canonical,
+      signatureHash,
+      payload: JSON.stringify(payload)
+    });
+
+    db.prepare(`
+      INSERT INTO audit_records (
+        type, source, status, severity, result, confidence, operator, signer,
+        batch_id, step_idx, check_idx, equipment_id, photo, parameters, payload
+      )
+      VALUES (
+        'signature', 'electronic-signature', 'recorded', 'info', 'SIGNED', 100,
+        @operator, @signer, @batchId, @stepIdx, NULL, NULL, NULL, @parameters, @payload
+      )
+    `).run({
+      operator: canonical.role || signer,
+      signer,
+      batchId: canonical.batchId,
+      stepIdx: canonical.stepIdx,
+      parameters: JSON.stringify({
+        kind: canonical.kind,
+        shift: canonical.shift,
+        formId: canonical.formId,
+        signatureHash
+      }),
+      payload: JSON.stringify({
+        signatureId: signatureResult.lastInsertRowid,
+        statement: canonical.statement,
+        payload
+      })
+    });
+
+    return db
+      .prepare("SELECT * FROM signature_records WHERE id = ?")
+      .get(signatureResult.lastInsertRowid);
+  });
+
+  const row = transaction();
+  res.status(201).json({ signature: signatureRowToRecord(row) });
 });
 
 app.get("/api/equipment/latest", async (_req, res) => {

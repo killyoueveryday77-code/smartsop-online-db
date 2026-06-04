@@ -1388,6 +1388,7 @@ function renderSOPDetail(){
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="badge b-ok">${t('sop.signed')}</span></div>
               <div style="font-size:13px"><b>${sopState.signatures[i].who}</b></div>
               <div style="font-size:11px;color:var(--c-mute)">${sopState.signatures[i].at}</div>
+              ${sopState.signatures[i].onlineId ? `<div style="font-size:11px;color:#168a4a;font-weight:800;margin-top:6px">ONLINE #${sopState.signatures[i].onlineId}</div><div style="font-size:10px;color:var(--c-mute);word-break:break-all">HASH ${(sopState.signatures[i].hash || '').slice(0,16)}...</div>` : `<div style="font-size:11px;color:#f59e0b;font-weight:800;margin-top:6px">${localText('線上保存中','Saving online','Đang lưu trực tuyến')}</div>`}
               <div style="margin-top:8px;font-style:italic;font-size:18px;color:#111111;font-family:cursive">${sopState.signatures[i].who}</div>
             </div>
           ` : `
@@ -2154,6 +2155,7 @@ window.STATE = {
   forms: {},
   photos: {},
   auditRecords: [],
+  signatureRecords: [],
   training: {progress:[100,100,80,55,30,0,0,0], quizScores:{}},
   equipment: {
     'TG-003':{rpm:42, temp:48, runtime:6.4},
@@ -2171,7 +2173,7 @@ window.STATE = {
 function persistentPayload() {
   return {
     tickets: STATE.tickets, training: STATE.training, forms: STATE.forms,
-    photos: STATE.photos, auditRecords: STATE.auditRecords, sopState, equipment: STATE.equipment,
+    photos: STATE.photos, auditRecords: STATE.auditRecords, signatureRecords: STATE.signatureRecords, sopState, equipment: STATE.equipment,
     equipmentHistory: STATE.equipmentHistory, equipmentSource: STATE.equipmentSource,
     aiEvents: STATE.aiEvents, notifications: STATE.notifications,
     workOrderOptions, shiftOptions, productionContexts
@@ -2195,6 +2197,7 @@ function applyPersistedState(d) {
   if (d.forms) STATE.forms = d.forms;
   if (d.photos) STATE.photos = d.photos;
   if (d.auditRecords) STATE.auditRecords = d.auditRecords;
+  if (d.signatureRecords) STATE.signatureRecords = d.signatureRecords;
   if (d.equipment && traceableEquipment) Object.assign(STATE.equipment, d.equipment);
   if (d.equipmentHistory && traceableEquipment) STATE.equipmentHistory = d.equipmentHistory;
   if (d.equipmentSource) STATE.equipmentSource = d.equipmentSource;
@@ -2292,6 +2295,29 @@ async function dbLoadContexts() {
     .map(normalizeContext);
   syncProductionContexts();
   syncLoginContextInputs();
+}
+
+async function dbLoadSignatures() {
+  const data = await dbRequest("/api/signatures?limit=300");
+  if (!data || !Array.isArray(data.signatures)) return false;
+  STATE.signatureRecords = data.signatures;
+  data.signatures.forEach(function(signature) {
+    if (signature.kind !== "sop-step") return;
+    const stepIdx = Number(signature.stepIdx);
+    if (!Number.isInteger(stepIdx) || !sopState.signatures || stepIdx < 0 || stepIdx >= sopState.signatures.length) return;
+    const current = sopState.signatures[stepIdx];
+    if (current && current.onlineId && current.onlineId >= signature.id) return;
+    sopState.signatures[stepIdx] = {
+      who: signature.signer,
+      at: signature.createdAt,
+      onlineId: signature.id,
+      onlineAt: signature.createdAt,
+      hash: signature.signatureHash,
+      status: "online"
+    };
+    if (sopState.status && sopState.status[stepIdx] !== "skipped") sopState.status[stepIdx] = "done";
+  });
+  return true;
 }
 
 async function dbSaveContext(orderNo, shift) {
@@ -2753,6 +2779,31 @@ function formSave(formId, batchId, mode) {
   if (!STATE.forms[batchId]) STATE.forms[batchId] = {};
   STATE.forms[batchId][formId] = data;
   ssPersist();
+  if (mode === 'sign') {
+    apiSaveSignature({
+      kind:"form",
+      batchId:batchId,
+      shift:sopState.shift,
+      formId:formId,
+      signer:data._signedBy,
+      role:auditOperatorName(),
+      status:"signed",
+      signatureText:data._signedBy,
+      statement:"I confirm this electronic form was completed, reviewed, and electronically signed.",
+      payload:{
+        formTitle:def.titleEn || def.titleZh || formId,
+        form:data,
+        appUrl:location.href
+      }
+    }).then(function(saved) {
+      if (saved) {
+        data._onlineSignatureId = saved.id;
+        data._signatureHash = saved.signatureHash;
+        STATE.forms[batchId][formId] = data;
+        ssPersist();
+      }
+    });
+  }
   closeModal(document.querySelector('.modal-bg'));
   window._activeFormScope = null;
   showToast(
@@ -3864,6 +3915,7 @@ window.renderSOPDetail = function() {
               '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="badge b-ok">'+t('sop.signed')+'</span></div>' +
               '<div style="font-size:13px"><b>'+sopState.signatures[i].who+'</b></div>' +
               '<div style="font-size:11px;color:var(--c-mute)">'+sopState.signatures[i].at+'</div>' +
+              (sopState.signatures[i].onlineId ? '<div style="font-size:11px;color:#168a4a;font-weight:800;margin-top:6px">ONLINE #'+sopState.signatures[i].onlineId+'</div><div style="font-size:10px;color:var(--c-mute);word-break:break-all">HASH '+String(sopState.signatures[i].hash || '').slice(0,16)+'...</div>' : '<div style="font-size:11px;color:#f59e0b;font-weight:800;margin-top:6px">'+localText('線上保存中','Saving online','Đang lưu trực tuyến')+'</div>') +
               '<div style="margin-top:8px;font-style:italic;font-size:18px;color:#111111;font-family:cursive">'+sopState.signatures[i].who+'</div></div>'
             : '<div style="display:grid;gap:8px">' +
                 '<label style="font-size:12px;color:var(--c-mute);font-weight:600">'+t('common.signed')+'</label>' +
@@ -3884,11 +3936,78 @@ window.renderSOPDetail = function() {
   });
 };
 
-/* override sopComplete to also persist */
+function sopStepSignaturePayload(stepIdx, signature) {
+  const step = SOP_STEPS[stepIdx] || {};
+  const stepPhotos = (STATE.photos["step_" + stepIdx] || []).map(function(photo) {
+    return {
+      name: photo.name || "",
+      time: photo.time || "",
+      result: photo.result || (photo.isBad ? "NG" : "OK"),
+      confidence: photo.confidence || null
+    };
+  });
+  const checkPhotos = (sopState.checks[stepIdx] || []).map(function(_checked, checkIdx) {
+    return {
+      checkIdx: checkIdx,
+      count: checkPhotoList(stepIdx, checkIdx).length
+    };
+  });
+  return {
+    stepTitle: step.titleEn || step.titleZh || "",
+    stepTitleZh: step.titleZh || "",
+    signedAtLocal: signature && signature.at,
+    checks: sopState.checks[stepIdx] || [],
+    duration: sopDuration(stepIdx),
+    status: sopState.status[stepIdx],
+    photos: stepPhotos,
+    checkPhotos: checkPhotos,
+    equipmentSource: STATE.equipmentSource,
+    equipmentSnapshot: STATE.equipment,
+    appUrl: location.href
+  };
+}
+
+async function saveSopSignatureOnline(stepIdx) {
+  const signature = sopState.signatures && sopState.signatures[stepIdx];
+  if (!signature || signature.onlineId) return signature;
+  const saved = await apiSaveSignature({
+    kind:"sop-step",
+    batchId:sopState.batch,
+    shift:sopState.shift,
+    stepIdx:stepIdx,
+    signer:signature.who,
+    role:auditOperatorName(),
+    status:"signed",
+    signatureText:signature.who,
+    statement:"I confirm this SOP step was completed, reviewed, and electronically signed.",
+    payload:sopStepSignaturePayload(stepIdx, signature)
+  });
+  if (!saved) return null;
+  sopState.signatures[stepIdx] = Object.assign({}, signature, {
+    onlineId:saved.id,
+    onlineAt:saved.createdAt,
+    hash:saved.signatureHash,
+    status:"online"
+  });
+  await dbLoadAuditRecords();
+  ssPersist();
+  if (currentPage === "sop") renderSOP();
+  return sopState.signatures[stepIdx];
+}
+
+/* override sopComplete to also persist online */
 const _sopCompleteOrig = window.sopComplete;
 window.sopComplete = function() {
+  const stepIdx = sopState.current;
   _sopCompleteOrig();
   ssPersist();
+  saveSopSignatureOnline(stepIdx)
+    .then(function(saved) {
+      showToast(saved && saved.onlineId ? localText("線上簽核已保存","Online signature saved","Đã lưu chữ ký trực tuyến") : localText("本機已簽核，線上寫入待重試","Signed locally; online save needs retry","Đã ký cục bộ; cần lưu trực tuyến lại"), saved && saved.onlineId ? "ok" : "warn");
+    })
+    .catch(function() {
+      showToast(localText("本機已簽核，線上寫入失敗","Signed locally; online save failed","Đã ký cục bộ; lưu trực tuyến thất bại"), "warn");
+    });
 };
 
 /* ---- renderEquipment OVERRIDE: real onclicks + STATE-driven values ---- */
@@ -4251,6 +4370,19 @@ async function apiSaveAuditRecord(record) {
     if (STATE.auditRecords.length > 200) STATE.auditRecords.pop();
   }
   return saved && saved.record;
+}
+
+async function apiSaveSignature(record) {
+  const saved = await dbRequest("/api/signatures", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(record)
+  });
+  if (saved && saved.signature) {
+    STATE.signatureRecords.unshift(saved.signature);
+    if (STATE.signatureRecords.length > 300) STATE.signatureRecords.pop();
+  }
+  return saved && saved.signature;
 }
 
 async function dbLoadAuditRecords() {
@@ -4830,6 +4962,7 @@ async function bootApp() {
   await dbLoadState();
   STATE.aiEvents = traceableAiEvents(STATE.aiEvents);
   await dbLoadAuditRecords();
+  await dbLoadSignatures();
   await refreshEquipmentFromSource();
   applyI18n();
   syncLoginContextInputs();

@@ -16,6 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.22.0/dist/tf-backend-webgl.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu@4.22.0/dist/tf-backend-cpu.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
 <style>
   :root{
     --c-bg:#ffffff; --c-bg2:#f7f7f7; --c-panel:#ffffff; --c-panel2:#f9f9f9;
@@ -338,7 +339,7 @@ const I18N = {
     "nav.ai":"AI 智慧稽核","nav.quality":"品質與良率","nav.maintenance":"設備保養",
     "nav.audit":"稽核紀錄","nav.training":"教育訓練",
     "nav.settings":"設定","nav.logout":"登出",
-    "nav.tip.title":"小提示","nav.tip.body":"您目前以演示模式體驗，所有資料皆為模擬。可隨時切換語言或角色。",
+    "nav.tip.title":"小提示","nav.tip.body":"設備與 AI 稽核可接真實來源；未設定來源時顯示本機快照。可隨時切換語言或角色。",
     /* Dashboard */
     "dash.title":"儀表板總覽","dash.welcome":"今日營運狀態",
     "dash.kpi.oee":"整體設備效率 OEE","dash.kpi.yield":"今日良率","dash.kpi.batches":"今日批次","dash.kpi.alerts":"AI 警示",
@@ -355,7 +356,7 @@ const I18N = {
     "sop.signed":"已簽核","sop.pending":"待簽核","sop.skipped":"跳過","sop.aiwatch":"AI 監督中",
     "sop.flow":"製程流程","sop.allsteps":"完整步驟",
     /* Equipment */
-    "eq.title":"設備即時監控","eq.subtitle":"4 台核心設備 · 1 秒更新",
+    "eq.title":"設備即時監控","eq.subtitle":"4 台核心設備 · 資料來源輪詢",
     "eq.status.run":"運轉中","eq.status.idle":"待機","eq.status.warn":"警示","eq.status.stop":"停機",
     "eq.param.temp":"溫度","eq.param.rpm":"轉速","eq.param.belt":"皮帶速","eq.param.moisture":"水分","eq.param.pressure":"壓力",
     /* AI */
@@ -402,7 +403,7 @@ const I18N = {
     "nav.ai":"AI Smart Audit","nav.quality":"Quality & Yield","nav.maintenance":"Maintenance",
     "nav.audit":"Audit Records","nav.training":"Training",
     "nav.settings":"Settings","nav.logout":"Log out",
-    "nav.tip.title":"Tip","nav.tip.body":"You're in demo mode — all data is simulated. Switch language or role anytime.",
+    "nav.tip.title":"Tip","nav.tip.body":"Equipment and AI audits can use real sources; local snapshots are shown until a source is configured.",
     "dash.title":"Dashboard","dash.welcome":"Today's operations",
     "dash.kpi.oee":"OEE","dash.kpi.yield":"Today yield","dash.kpi.batches":"Batches","dash.kpi.alerts":"AI alerts",
     "dash.kpi.compliance":"SOP compliance","dash.kpi.uptime":"Equipment uptime",
@@ -416,7 +417,7 @@ const I18N = {
     "sop.checklist":"Checklist","sop.params":"Process parameters","sop.notes":"Notes","sop.attach":"Photo",
     "sop.signed":"Signed","sop.pending":"Pending","sop.skipped":"Skipped","sop.aiwatch":"AI monitoring",
     "sop.flow":"Process flow","sop.allsteps":"All steps",
-    "eq.title":"Equipment Live Monitor","eq.subtitle":"4 core machines · 1 s refresh",
+    "eq.title":"Equipment Live Monitor","eq.subtitle":"4 core machines · source polling",
     "eq.status.run":"Running","eq.status.idle":"Idle","eq.status.warn":"Warning","eq.status.stop":"Stopped",
     "eq.param.temp":"Temp","eq.param.rpm":"RPM","eq.param.belt":"Belt","eq.param.moisture":"Moisture","eq.param.pressure":"Pressure",
     "ai.title":"AI Smart Audit","ai.subtitle":"Four engines · 24/7 operation",
@@ -456,7 +457,7 @@ const I18N = {
     "nav.ai":"Kiểm tra AI","nav.quality":"Chất lượng & tỷ lệ đạt","nav.maintenance":"Bảo trì thiết bị",
     "nav.audit":"Hồ sơ kiểm tra","nav.training":"Đào tạo",
     "nav.settings":"Cài đặt","nav.logout":"Đăng xuất",
-    "nav.tip.title":"Mẹo","nav.tip.body":"Bạn đang ở chế độ demo; tất cả dữ liệu đều là mô phỏng. Có thể đổi ngôn ngữ hoặc vai trò bất cứ lúc nào.",
+    "nav.tip.title":"Mẹo","nav.tip.body":"Thiết bị và kiểm tra AI có thể dùng nguồn thật; khi chưa cấu hình sẽ hiển thị ảnh chụp cục bộ.",
     "dash.title":"Tổng quan","dash.welcome":"Tình trạng vận hành hôm nay",
     "dash.kpi.oee":"Hiệu suất thiết bị OEE","dash.kpi.yield":"Tỷ lệ đạt hôm nay","dash.kpi.batches":"Lô hôm nay","dash.kpi.alerts":"Cảnh báo AI",
     "dash.kpi.compliance":"Tỷ lệ tuân thủ SOP","dash.kpi.uptime":"Tỷ lệ vận hành thiết bị",
@@ -470,7 +471,7 @@ const I18N = {
     "sop.checklist":"Hạng mục kiểm tra","sop.params":"Thông số quy trình","sop.notes":"Ghi chú vận hành","sop.attach":"Đính kèm ảnh",
     "sop.signed":"Đã ký","sop.pending":"Chờ ký","sop.skipped":"Đã bỏ qua","sop.aiwatch":"AI đang giám sát",
     "sop.flow":"Luồng quy trình","sop.allsteps":"Tất cả các bước",
-    "eq.title":"Giám sát thiết bị thời gian thực","eq.subtitle":"4 thiết bị cốt lõi · Cập nhật mỗi 1 giây",
+    "eq.title":"Giám sát thiết bị thời gian thực","eq.subtitle":"4 thiết bị cốt lõi · thăm dò nguồn dữ liệu",
     "eq.status.run":"Đang chạy","eq.status.idle":"Chờ","eq.status.warn":"Cảnh báo","eq.status.stop":"Dừng",
     "eq.param.temp":"Nhiệt độ","eq.param.rpm":"Tốc độ quay","eq.param.belt":"Tốc độ băng tải","eq.param.moisture":"Độ ẩm","eq.param.pressure":"Áp suất",
     "ai.title":"Kiểm tra thông minh AI","ai.subtitle":"4 công cụ kiểm tra · Hoạt động 24/7",
@@ -1477,7 +1478,7 @@ function renderEquipment(){
     <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:16px">
       <div>
         <div style="font-size:24px;font-weight:800" data-i18n="eq.title">設備即時監控</div>
-        <div style="font-size:13px;color:var(--c-mute)" data-i18n="eq.subtitle">4 台核心設備 · 1 秒更新</div>
+        <div style="font-size:13px;color:var(--c-mute)" data-i18n="eq.subtitle">4 台核心設備 · 資料來源輪詢</div>
       </div>
       <div class="badge b-ok"><span class="pulse"></span>LIVE</div>
     </div>
@@ -2152,6 +2153,7 @@ window.STATE = {
   ],
   forms: {},
   photos: {},
+  auditRecords: [],
   training: {progress:[100,100,80,55,30,0,0,0], quizScores:{}},
   equipment: {
     'TG-003':{rpm:42, temp:48, runtime:6.4},
@@ -2159,6 +2161,8 @@ window.STATE = {
     'TG-011':{belt:6.4, blade:1240, width:31},
     'TG-012':{temp:135, belt:1.2, moisture:3.8}
   },
+  equipmentHistory: {},
+  equipmentSource: {mode:"local-snapshot", sourceConfigured:false, updatedAt:null},
   liveTickId: null,
   searchAuditQuery: ''
 };
@@ -2167,20 +2171,34 @@ window.STATE = {
 function persistentPayload() {
   return {
     tickets: STATE.tickets, training: STATE.training, forms: STATE.forms,
-    photos: STATE.photos, sopState, equipment: STATE.equipment,
+    photos: STATE.photos, auditRecords: STATE.auditRecords, sopState, equipment: STATE.equipment,
+    equipmentHistory: STATE.equipmentHistory, equipmentSource: STATE.equipmentSource,
     aiEvents: STATE.aiEvents, notifications: STATE.notifications,
     workOrderOptions, shiftOptions, productionContexts
   };
 }
 
+function equipmentSourceIsTraceable(source) {
+  const mode = source && String(source.mode || source.source || "");
+  return !!(source && (source.sourceConfigured || mode === "database" || mode === "external-url" || mode === "external-file"));
+}
+
+function traceableAiEvents(events) {
+  return Array.isArray(events) ? events.filter(function(event) { return event && event.traceable; }) : [];
+}
+
 function applyPersistedState(d) {
   if (!d) return;
+  const traceableEquipment = equipmentSourceIsTraceable(d.equipmentSource);
   if (d.tickets) STATE.tickets = d.tickets;
   if (d.training) STATE.training = d.training;
   if (d.forms) STATE.forms = d.forms;
   if (d.photos) STATE.photos = d.photos;
-  if (d.equipment) Object.assign(STATE.equipment, d.equipment);
-  if (d.aiEvents) STATE.aiEvents = d.aiEvents;
+  if (d.auditRecords) STATE.auditRecords = d.auditRecords;
+  if (d.equipment && traceableEquipment) Object.assign(STATE.equipment, d.equipment);
+  if (d.equipmentHistory && traceableEquipment) STATE.equipmentHistory = d.equipmentHistory;
+  if (d.equipmentSource) STATE.equipmentSource = d.equipmentSource;
+  if (d.aiEvents) STATE.aiEvents = traceableAiEvents(d.aiEvents);
   if (d.notifications) STATE.notifications = d.notifications;
   if (d.workOrderOptions) workOrderOptions = uniqueOptions(d.workOrderOptions.concat(workOrderOptions));
   if (d.shiftOptions) shiftOptions = uniqueOptions(d.shiftOptions.concat(shiftOptions));
@@ -2316,18 +2334,7 @@ function _esc(s) { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;
 /* ---- LIVE TICK ---- */
 function startLiveTick() {
   if (STATE.liveTickId) clearInterval(STATE.liveTickId);
-  STATE.liveTickId = setInterval(function() {
-    Object.keys(STATE.equipment).forEach(function(id) {
-      const params = STATE.equipment[id];
-      Object.keys(params).forEach(function(k) {
-        const v = params[k];
-        const drift = (Math.random()-0.5) * (Math.abs(v)*0.012 + 0.05);
-        params[k] = +(v + drift).toFixed(2);
-      });
-    });
-    if (Math.random() < 0.06) generateRandomAIEvent();
-    if (currentPage === 'equipment') updateEquipmentLive();
-  }, 2500);
+  STATE.liveTickId = null;
 }
 
 function updateEquipmentLive() {
@@ -2630,8 +2637,8 @@ function checkRelationHtml(stepIdx, checkIdx) {
   const hint = byLang(link, 'hint') || localText('依關聯表單欄位輸入實測值或結果，再勾選檢核項。','Enter the measured value or result in the linked form field before checking.','Nhập giá trị hoặc kết quả vào trường biểu mẫu liên quan trước khi chọn.');
   const photoStrip = photos.length ? '<div class="check-photo-strip">' +
     photos.slice(0,4).map(function(p,pi){
-      return '<div class="check-photo-thumb '+(p.isBad?'ng':'')+'" style="background-image:url(\''+p.url+'\')" onclick="event.stopPropagation();viewCheckPhoto('+stepIdx+','+checkIdx+','+pi+')">' +
-        '<span style="position:absolute;right:2px;top:2px;background:'+(p.isBad?'#ef4444':'#168a4a')+';color:#fff;border-radius:4px;padding:1px 4px;font-size:8px;font-weight:900">'+(p.isBad?'NG':'OK')+'</span></div>';
+      return '<div class="check-photo-thumb '+(photoAuditLabel(p)==='NG'?'ng':'')+'" style="background-image:url(\''+p.url+'\')" onclick="event.stopPropagation();viewCheckPhoto('+stepIdx+','+checkIdx+','+pi+')">' +
+        '<span style="position:absolute;right:2px;top:2px;background:'+photoAuditColor(p)+';color:#fff;border-radius:4px;padding:1px 4px;font-size:8px;font-weight:900">'+photoAuditLabel(p)+'</span></div>';
     }).join('') +
     (photos.length > 4 ? '<span class="check-photo-count">+'+(photos.length-4)+'</span>' : '') +
     '</div>' : '';
@@ -2837,13 +2844,7 @@ function checkPhotoList(stepIdx, checkIdx) {
   return STATE.photos[checkPhotoKey(stepIdx, checkIdx)] || [];
 }
 function addPhotoRecord(stepIdx, url, name, checkIdx) {
-  const isBad = Math.random() < 0.2;
-  const key = checkIdx === null || checkIdx === undefined ? 'step_'+stepIdx : checkPhotoKey(stepIdx, checkIdx);
-  if (!STATE.photos[key]) STATE.photos[key] = [];
-  STATE.photos[key].push({url:url, isBad:isBad, time:nowFull(), name:name || '', source:'camera', checkIdx:checkIdx});
-  ssPersist();
-  showToast('📸 '+(checkIdx === null || checkIdx === undefined ? localText('已加入相機照片，AI 判定：','Camera photo added, AI result: ','Đã thêm ảnh camera, kết quả AI: ') : localText('檢核照片已加入，AI 判定：','Check photo added, AI result: ','Đã thêm ảnh kiểm tra, kết quả AI: '))+(isBad?'NG':'OK'), isBad?'warn':'ok');
-  if (currentPage === 'sop') renderSOPDetail();
+  return window.addPhotoRecord(stepIdx, url, name, checkIdx);
 }
 function viewCheckPhoto(stepIdx, checkIdx, photoIdx) {
   const photos = checkPhotoList(stepIdx, checkIdx);
@@ -2854,7 +2855,7 @@ function viewCheckPhoto(stepIdx, checkIdx, photoIdx) {
   const html = '<div style="text-align:center">' +
     '<img src="'+p.url+'" style="max-width:100%;border-radius:12px;border:1px solid var(--c-line);margin-bottom:10px" />' +
     '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
-      '<span class="badge '+(p.isBad?'b-bad':'b-ok')+'">'+(p.isBad?'NG':'OK')+'</span>' +
+      '<span class="badge '+(photoAuditLabel(p)==='OK'?'b-ok':'b-bad')+'">'+photoAuditLabel(p)+'</span>' +
       '<span style="font-size:12px;color:var(--c-mute)">'+_esc(checkLabel)+'</span>' +
       '<span style="font-size:12px;color:var(--c-mute)">'+(p.time || '')+'</span>' +
     '</div>' +
@@ -2872,40 +2873,7 @@ function deleteCheckPhoto(stepIdx, checkIdx, photoIdx) {
   if (currentPage === 'sop') renderSOPDetail();
 }
 function takeDemoPhoto(stepIdx) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 240; canvas.height = 240;
-  const ctx = canvas.getContext('2d');
-  const bg = ctx.createLinearGradient(0,0,240,240);
-  bg.addColorStop(0,'#f7f7f7'); bg.addColorStop(1,'#ffffff');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,240,240);
-  ctx.fillStyle = '#e5e5e5'; ctx.fillRect(0,140,240,60);
-  for (let x=0;x<240;x+=20){ ctx.fillStyle = '#111111'; ctx.fillRect(x,140,2,60); }
-  const isBad = Math.random() < 0.2;
-  ctx.fillStyle = isBad ? '#7c3a1c' : '#d4a155';
-  ctx.beginPath(); ctx.ellipse(120,140,55,30,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle = isBad ? '#5a2a14' : '#b8853a';
-  for (let i=0;i<10;i++){
-    const a=Math.random()*Math.PI*2; const r=Math.random()*40;
-    ctx.beginPath(); ctx.arc(120+Math.cos(a)*r, 140+Math.sin(a)*r*0.55, 2+Math.random()*2, 0, Math.PI*2); ctx.fill();
-  }
-  if (isBad){
-    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(85,135); ctx.lineTo(105,148); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(140,128); ctx.lineTo(155,150); ctx.stroke();
-  }
-  ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,210,240,30);
-  ctx.fillStyle='#ffffff'; ctx.font='bold 11px sans-serif';
-  ctx.fillText('STEP '+(stepIdx+1)+' · '+nowFull(), 8, 228);
-  ctx.fillStyle = isBad ? '#ef4444' : '#168a4a';
-  ctx.font='bold 14px sans-serif';
-  ctx.fillText(isBad?'AI: NG':'AI: OK', 178, 28);
-  const url = canvas.toDataURL('image/png');
-  const key = 'step_'+stepIdx;
-  if (!STATE.photos[key]) STATE.photos[key] = [];
-  STATE.photos[key].push({url:url, isBad:isBad, time:nowFull()});
-  ssPersist();
-  showToast('📸 '+localText('已拍攝照片 ','Photo captured ','Đã chụp ảnh ')+(isBad?'(NG)':'(OK)'), isBad?'warn':'ok');
-  if (currentPage === 'sop') renderSOPDetail();
+  return window.takeDemoPhoto(stepIdx);
 }
 
 let operatorCameraState = {
@@ -3438,7 +3406,7 @@ function viewPhoto(stepIdx, photoIdx) {
   const p = STATE.photos['step_'+stepIdx][photoIdx];
   if (!p) return;
   const html = '<div style="text-align:center"><img src="'+p.url+'" style="max-width:100%;border-radius:10px;border:1px solid var(--c-line)"/>' +
-    '<div style="margin-top:10px;font-size:13px;color:var(--c-mute)">'+p.time+' · '+(p.isBad?'<span class="badge b-bad">NG</span>':'<span class="badge b-ok">OK</span>')+'</div>' +
+    '<div style="margin-top:10px;font-size:13px;color:var(--c-mute)">'+p.time+' · <span class="badge '+(photoAuditLabel(p)==='OK'?'b-ok':'b-bad')+'">'+photoAuditLabel(p)+'</span></div>' +
     '<button class="btn btn-danger" style="margin-top:14px" onclick="deletePhoto('+stepIdx+','+photoIdx+')">🗑 '+localText('刪除','Delete','Xóa')+'</button></div>';
   openModal(html, {title:'📸 '+localText('照片檢視','Photo','Xem ảnh'), width:'420px'});
 }
@@ -3471,21 +3439,10 @@ function generateRandomAIEvent() {
   ssPersist();
 }
 window.aiRunAll = function() {
-  showToast(localText('🤖 全部 4 個 AI 引擎執行中...','🤖 Running all 4 AI engines...','🤖 Đang chạy cả 4 công cụ AI...'), 'info');
-  setTimeout(function(){
-    const n = 1+Math.floor(Math.random()*3);
-    for (let i=0;i<n;i++) generateRandomAIEvent();
-    showToast(localText('✅ 稽核完成，新增 '+n+' 件提示','✅ Audit complete, '+n+' new tips','✅ Kiểm tra hoàn tất, thêm '+n+' gợi ý mới'), 'ok');
-    if (currentPage === 'ai') navigate('ai');
-  }, 1300);
+  showToast('Real audit integration is loading...', 'info');
 };
 window.aiRunOne = function(id, name) {
-  showToast('🤖 '+localText(name+' 引擎執行中...',name+' running...',name+' đang chạy...'), 'info');
-  setTimeout(function(){
-    generateRandomAIEvent();
-    showToast(localText('✅ 稽核完成','✅ Done','✅ Kiểm tra hoàn tất'), 'ok');
-    if (currentPage === 'ai') navigate('ai');
-  }, 800);
+  showToast('Real audit integration is loading: ' + (name || id), 'info');
 };
 function viewAIEvent(idx) {
   const ev = STATE.aiEvents[idx]; if (!ev) return;
@@ -3841,8 +3798,8 @@ window.renderSOPDetail = function() {
   const photoHtml = photos.length === 0
     ? '<div class="sop-photo-tile sop-photo-empty wide">📷<div style="font-size:11px;margin-top:4px">'+localText('尚無照片','No photos','Chưa có ảnh')+'</div></div>'
     : photos.map(function(p,pi){
-        return '<div class="sop-photo-tile sop-photo-thumb" style="background-image:url(\''+p.url+'\');border:2px solid '+(p.isBad?'#ef4444':'#168a4a')+'" onclick="viewPhoto('+i+','+pi+')">' +
-          '<div style="position:absolute;top:4px;right:4px;background:'+(p.isBad?'#ef4444':'#168a4a')+';color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px">'+(p.isBad?'NG':'OK')+'</div></div>';
+        return '<div class="sop-photo-tile sop-photo-thumb" style="background-image:url(\''+p.url+'\');border:2px solid '+photoAuditColor(p)+'" onclick="viewPhoto('+i+','+pi+')">' +
+          '<div style="position:absolute;top:4px;right:4px;background:'+photoAuditColor(p)+';color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px">'+photoAuditLabel(p)+'</div></div>';
       }).join('');
 
   const html =
@@ -3936,18 +3893,21 @@ window.sopComplete = function() {
 
 /* ---- renderEquipment OVERRIDE: real onclicks + STATE-driven values ---- */
 window.renderEquipment = function() {
+  syncEquipmentCatalogFromState();
   // Sync EQUIPMENT params from STATE.equipment
   EQUIPMENT.forEach(function(e) {
     const live = STATE.equipment[e.id]; if (!live) return;
     e.params.forEach(function(p) {
       if (live[p.key] !== undefined) p.val = +live[p.key].toFixed(2);
+      p.alert = Number.isFinite(Number(p.val)) && (Number(p.val) < p.min || Number(p.val) > p.max);
     });
+    e.status = e.params.some(function(p){ return p.alert; }) ? "warn" : "run";
   });
   const html =
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:16px">' +
       '<div><div style="font-size:24px;font-weight:800" data-i18n="eq.title">設備即時監控</div>' +
-      '<div style="font-size:13px;color:var(--c-mute)" data-i18n="eq.subtitle">4 台核心設備 · 1 秒更新</div></div>' +
-      '<div class="badge b-ok"><span class="pulse"></span>LIVE</div></div>' +
+      '<div style="font-size:13px;color:var(--c-mute)" data-i18n="eq.subtitle">4 台核心設備 · 資料來源輪詢</div></div>' +
+      equipmentSourceBadge() + '</div>' +
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px">' +
     EQUIPMENT.map(function(e, ei) {
       const statusBadge = e.status==='warn'?'<span class="badge b-warn"><span class="pulse warn"></span>'+t('eq.status.warn')+'</span>':
@@ -3987,7 +3947,7 @@ window.renderEquipment = function() {
   document.getElementById("pageContainer").innerHTML = html;
   EQUIPMENT.forEach(function(e, ei) {
     const ctx = document.getElementById('eqChart-'+ei).getContext('2d');
-    const data = Array.from({length:24},function(_,i){return e.params[0].val + (Math.sin(i/3)+Math.random()*0.4-0.2)*(e.params[0].max*0.05)});
+    const data = equipmentSparkData(e.id, e.params[0]);
     window._charts.push(new Chart(ctx, {type:'line', data:{labels:data.map(function(_,i){return i}), datasets:[{
       data:data, borderColor: e.status==='warn'?'#f59e0b':'#d6282f',
       backgroundColor: e.status==='warn'?'rgba(245,158,11,.15)':'rgba(214,40,47,.12)', tension:.4, fill:true, pointRadius:0, borderWidth:1.6
@@ -3997,10 +3957,10 @@ window.renderEquipment = function() {
   window._charts.push(new Chart(document.getElementById('eqAllChart').getContext('2d'),{
     type:'line',
     data:{labels:labels, datasets:[
-      {label:localText("膨化模頭溫度","Die temp","Nhiệt độ khuôn đùn"), data:labels.map(function(_,i){return 84+Math.sin(i/4)*3+Math.random()*2}), borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.08)", tension:.4, pointRadius:0, fill:true},
-      {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:labels.map(function(_,i){return 68+Math.sin(i/5)*2+Math.random()*1}), borderColor:"#d6282f", backgroundColor:"rgba(214,40,47,.05)", tension:.4, pointRadius:0},
-      {label:localText("乾燥爐溫","Oven temp","Nhiệt độ lò sấy"), data:labels.map(function(_,i){return 135+Math.sin(i/3)*4+Math.random()*2}), borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.05)", tension:.4, pointRadius:0},
-      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:labels.map(function(_,i){return 38+Math.sin(i/6)*1+Math.random()*0.6}), borderColor:"#168a4a", backgroundColor:"rgba(22,138,74,.05)", tension:.4, pointRadius:0}
+      {label:localText("膨化模頭溫度","Die temp","Nhiệt độ khuôn đùn"), data:equipmentSeries('TG-009','die_t',labels,84), borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.08)", tension:.4, pointRadius:0, fill:true},
+      {label:localText("螺軸溫度","Screw temp","Nhiệt độ trục vít"), data:equipmentSeries('TG-009','screw_t',labels,68), borderColor:"#d6282f", backgroundColor:"rgba(214,40,47,.05)", tension:.4, pointRadius:0},
+      {label:localText("乾燥爐溫","Oven temp","Nhiệt độ lò sấy"), data:equipmentSeries('TG-012','temp',labels,135), borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.05)", tension:.4, pointRadius:0},
+      {label:localText("主機 RPM","Main RPM","RPM máy chính"), data:equipmentSeries('TG-009','rpm',labels,38), borderColor:"#168a4a", backgroundColor:"rgba(22,138,74,.05)", tension:.4, pointRadius:0}
     ]}, options: chartOpts()
   }));
 };
@@ -4260,12 +4220,617 @@ window.renderTraining = function() {
   document.getElementById("pageContainer").innerHTML = html;
 };
 
+/* ---- REAL AI AUDIT + EQUIPMENT SOURCE INTEGRATION ---- */
+const PRODUCT_VISION = {model:null, loading:false, ready:false, error:null};
+
+function auditNowIso() {
+  return new Date().toISOString();
+}
+
+function auditOperatorName() {
+  return currentUser ? roleName(currentUser) : "Unknown operator";
+}
+
+function auditSignerName(stepIdx) {
+  const sig = sopState && sopState.signatures ? sopState.signatures[stepIdx] : null;
+  return sig && sig.who ? sig.who : "Pending signature";
+}
+
+function auditSeverity(isBad) {
+  return isBad ? "high" : "info";
+}
+
+async function apiSaveAuditRecord(record) {
+  const saved = await dbRequest("/api/audit/records", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(record)
+  });
+  if (saved && saved.record) {
+    STATE.auditRecords.unshift(saved.record);
+    if (STATE.auditRecords.length > 200) STATE.auditRecords.pop();
+  }
+  return saved && saved.record;
+}
+
+async function dbLoadAuditRecords() {
+  const data = await dbRequest("/api/audit/records?limit=100");
+  if (data && Array.isArray(data.records)) STATE.auditRecords = data.records;
+}
+
+function auditRecordBadge(result) {
+  const value = String(result || "UNKNOWN").toUpperCase();
+  if (value === "OK" || value === "RECORDED") return '<span class="badge b-ok">'+value+'</span>';
+  if (value === "NG" || value === "HIGH" || value === "LOW" || value === "PENDING_SIGNATURES") return '<span class="badge b-bad">'+value+'</span>';
+  return '<span class="badge b-info">'+value+'</span>';
+}
+
+function auditRecordTraceHtml() {
+  const records = (STATE.auditRecords || []).slice(0, 20);
+  const rows = records.map(function(record) {
+    const photo = record.photo ? '<img src="'+record.photo+'" style="width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--c-line)" />' : '-';
+    return '<tr>' +
+      '<td style="white-space:nowrap">'+(record.createdAt || '')+'</td>' +
+      '<td><b>'+(record.type || '')+'</b><div style="font-size:11px;color:var(--c-mute)">'+(record.source || '')+'</div></td>' +
+      '<td>'+auditRecordBadge(record.result)+'</td>' +
+      '<td>'+((record.confidence === null || record.confidence === undefined) ? '-' : record.confidence + '%')+'</td>' +
+      '<td>'+(record.operator || '-')+'</td>' +
+      '<td>'+(record.signer || '-')+'</td>' +
+      '<td>'+(record.equipmentId || record.batchId || '-')+'</td>' +
+      '<td>'+photo+'</td>' +
+    '</tr>';
+  }).join('');
+  return '<div class="panel" style="padding:18px;margin-top:16px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">' +
+      '<div><div style="font-weight:800;font-size:16px">AI traceability records</div>' +
+      '<div style="font-size:12px;color:var(--c-mute)">Photo, parameters, confidence, operator and signer are stored by /api/audit/records.</div></div>' +
+      '<span class="badge b-info">'+records.length+'</span>' +
+    '</div>' +
+    '<table><thead><tr><th>Time</th><th>Type</th><th>Result</th><th>Confidence</th><th>Operator</th><th>Signer</th><th>Batch/Equipment</th><th>Photo</th></tr></thead><tbody>' +
+      (rows || '<tr><td colspan="8" style="color:var(--c-mute)">No AI traceability records yet.</td></tr>') +
+    '</tbody></table>' +
+  '</div>';
+}
+
+const _renderAuditTraceable = window.renderAudit;
+window.renderAudit = function() {
+  _renderAuditTraceable();
+  const container = document.getElementById("pageContainer");
+  if (container) container.insertAdjacentHTML("beforeend", auditRecordTraceHtml());
+};
+
+function loadImageForAudit(src) {
+  return new Promise(function(resolve, reject) {
+    const img = new Image();
+    img.onload = function(){ resolve(img); };
+    img.onerror = function(){ reject(new Error("image load failed")); };
+    img.src = src;
+  });
+}
+
+async function loadProductVisionModel() {
+  if (PRODUCT_VISION.ready || PRODUCT_VISION.loading) return PRODUCT_VISION.model;
+  if (!window.mobilenet) {
+    PRODUCT_VISION.error = "mobilenet unavailable";
+    return null;
+  }
+  PRODUCT_VISION.loading = true;
+  try {
+    PRODUCT_VISION.model = await mobilenet.load({version:2, alpha:0.5});
+    PRODUCT_VISION.ready = true;
+    PRODUCT_VISION.error = null;
+    return PRODUCT_VISION.model;
+  } catch (err) {
+    PRODUCT_VISION.error = err && err.message ? err.message : String(err);
+    return null;
+  } finally {
+    PRODUCT_VISION.loading = false;
+  }
+}
+
+function clampScore(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function analyzeCanvasFeatures(canvas) {
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width;
+  const height = canvas.height;
+  const data = ctx.getImageData(0, 0, width, height).data;
+  let bright = 0, dark = 0, orange = 0, saturated = 0, total = width * height;
+  let luminanceSum = 0, saturationSum = 0, edgeSum = 0, darkSpot = 0;
+  const luminance = new Float32Array(total);
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    const sat = max === 0 ? 0 : (max - min) / max;
+    luminance[p] = lum;
+    luminanceSum += lum;
+    saturationSum += sat;
+    if (lum > 220) bright++;
+    if (lum < 45) dark++;
+    if (sat > 0.45) saturated++;
+    if (r > 120 && g > 70 && g < 190 && b < 110 && r > b * 1.35) orange++;
+    if (lum < 55 && sat > 0.18) darkSpot++;
+  }
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = y * width + x;
+      const lap = Math.abs(
+        luminance[idx] * 4 -
+        luminance[idx - 1] -
+        luminance[idx + 1] -
+        luminance[idx - width] -
+        luminance[idx + width]
+      );
+      edgeSum += lap;
+    }
+  }
+  return {
+    brightness: +(luminanceSum / total).toFixed(1),
+    saturation: +(saturationSum / total).toFixed(3),
+    sharpness: +(edgeSum / total).toFixed(2),
+    brightRatio: +(bright / total).toFixed(3),
+    darkRatio: +(dark / total).toFixed(3),
+    productColorRatio: +(orange / total).toFixed(3),
+    saturatedRatio: +(saturated / total).toFixed(3),
+    darkSpotRatio: +(darkSpot / total).toFixed(3)
+  };
+}
+
+function classifyDefects(features, predictions) {
+  const defects = [];
+  if (features.sharpness < 8) defects.push("blurred-photo");
+  if (features.brightRatio > 0.36) defects.push("over-exposure-or-steam");
+  if (features.darkRatio > 0.3) defects.push("under-exposure");
+  if (features.productColorRatio < 0.08) defects.push("low-product-area");
+  if (features.darkSpotRatio > 0.028) defects.push("possible-crack-or-foreign-matter");
+
+  const foodWords = /(food|bread|bun|pretzel|bagel|cracker|corn|snack|dough|waffle|pasta|bakery|cheese|hotdog|burrito|pizza)/i;
+  const bestFood = (predictions || []).find(function(p){ return foodWords.test(p.className || ""); });
+  if (predictions && predictions.length && !bestFood && predictions[0].probability > 0.28) {
+    defects.push("model-not-product-like");
+  }
+  return {defects, bestFood};
+}
+
+async function analyzeProductPhoto(src, meta) {
+  const img = await loadImageForAudit(src);
+  const canvas = document.createElement("canvas");
+  const maxSide = 192;
+  const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+  canvas.width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+  canvas.height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const model = await loadProductVisionModel();
+  let predictions = [];
+  if (model && model.classify) {
+    try {
+      predictions = await model.classify(canvas, 3);
+    } catch (_err) {
+      predictions = [];
+    }
+  }
+
+  const features = analyzeCanvasFeatures(canvas);
+  const defectInfo = classifyDefects(features, predictions);
+  let score = 100;
+  if (features.sharpness < 8) score -= 18;
+  if (features.brightRatio > 0.36) score -= 16;
+  if (features.darkRatio > 0.3) score -= 14;
+  if (features.productColorRatio < 0.08) score -= 18;
+  if (features.darkSpotRatio > 0.028) score -= 22;
+  if (defectInfo.bestFood) score += Math.min(8, defectInfo.bestFood.probability * 12);
+  score = clampScore(score, 0, 100);
+  const isBad = score < 72 || defectInfo.defects.length >= 2;
+  const confidence = clampScore(Math.round(58 + Math.abs(score - 72) * 0.75 + (predictions[0] ? predictions[0].probability * 18 : 0)), 58, 99);
+
+  return {
+    result:isBad ? "NG" : "OK",
+    isBad,
+    confidence,
+    score:+score.toFixed(1),
+    model:model ? "MobileNet v2 + CV quality model" : "CV quality model fallback",
+    modelReady:!!model,
+    modelError:PRODUCT_VISION.error,
+    features,
+    predictions:predictions.map(function(p){ return {className:p.className, probability:+p.probability.toFixed(4)}; }),
+    defects:defectInfo.defects,
+    meta:meta || {}
+  };
+}
+
+function addAuditEventFromVision(analysis, stepIdx, checkIdx) {
+  const msgEn = "Photo audit " + analysis.result + " (confidence " + analysis.confidence + "%, score " + analysis.score + ")";
+  STATE.aiEvents.unshift({
+    t:nowHHMM(),
+    engZh:"影像視覺辨識",
+    engEn:"Vision Recognition",
+    engVi:"Nhan dien hinh anh",
+    sev:analysis.isBad ? "high" : "info",
+    msgZh:"照片稽核 " + analysis.result + "，信心度 " + analysis.confidence + "%，分數 " + analysis.score,
+    msgEn:msgEn,
+    msgVi:msgEn,
+    c:analysis.confidence,
+    traceable:true,
+    source:"product-photo",
+    result:analysis.result,
+    stepIdx:stepIdx,
+    checkIdx:checkIdx
+  });
+  if (STATE.aiEvents.length > 25) STATE.aiEvents.pop();
+}
+
+function photoAuditLabel(photo) {
+  if (photo && photo.result) return photo.result;
+  if (photo && photo.isBad === true) return "NG";
+  if (photo && photo.isBad === false) return "OK";
+  return "ANALYZING";
+}
+
+function photoAuditColor(photo) {
+  const label = photoAuditLabel(photo);
+  if (label === "NG" || label === "REVIEW") return "#ef4444";
+  if (label === "ANALYZING") return "#f59e0b";
+  return "#168a4a";
+}
+
+window.addPhotoRecord = async function(stepIdx, url, name, checkIdx) {
+  const key = checkIdx === null || checkIdx === undefined ? "step_" + stepIdx : checkPhotoKey(stepIdx, checkIdx);
+  if (!STATE.photos[key]) STATE.photos[key] = [];
+  const photo = {
+    url:url,
+    isBad:null,
+    result:"ANALYZING",
+    confidence:null,
+    time:nowFull(),
+    name:name || "",
+    source:"camera",
+    checkIdx:checkIdx
+  };
+  STATE.photos[key].push(photo);
+  ssPersist();
+  showToast("AI vision analyzing product photo...", "info");
+  if (currentPage === "sop") renderSOPDetail();
+
+  try {
+    const step = SOP_STEPS[stepIdx] || {};
+    const analysis = await analyzeProductPhoto(url, {stepIdx:stepIdx, checkIdx:checkIdx, batchId:sopState.batch});
+    photo.isBad = analysis.isBad;
+    photo.result = analysis.result;
+    photo.confidence = analysis.confidence;
+    photo.ai = analysis;
+    addAuditEventFromVision(analysis, stepIdx, checkIdx);
+    await apiSaveAuditRecord({
+      type:"vision",
+      source:"product-photo",
+      status:"recorded",
+      severity:auditSeverity(analysis.isBad),
+      result:analysis.result,
+      confidence:analysis.confidence,
+      operator:auditOperatorName(),
+      signer:auditSignerName(stepIdx),
+      batchId:sopState.batch,
+      stepIdx:stepIdx,
+      checkIdx:checkIdx,
+      photo:url,
+      parameters:{
+        stepTitle:step.titleEn || step.titleZh || "",
+        equipmentSnapshot:STATE.equipment,
+        vision:analysis
+      },
+      payload:{
+        photoName:name || "",
+        signatureStatus:sopState.signatures && sopState.signatures[stepIdx] ? "signed" : "pending"
+      }
+    });
+    ssPersist();
+    showToast("AI vision result: " + analysis.result + " (" + analysis.confidence + "%)", analysis.isBad ? "warn" : "ok");
+    if (currentPage === "sop") renderSOPDetail();
+  } catch (err) {
+    photo.isBad = true;
+    photo.result = "REVIEW";
+    photo.confidence = 0;
+    photo.ai = {error:err && err.message ? err.message : String(err)};
+    ssPersist();
+    showToast("AI vision needs manual review", "warn");
+  }
+};
+
+window.takeDemoPhoto = function(stepIdx) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 240; canvas.height = 240;
+  const ctx = canvas.getContext("2d");
+  const isBadSample = (Number(stepIdx) + 1) % 3 === 0;
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 240, 240);
+  ctx.fillStyle = "#f0f0f0"; ctx.fillRect(0, 145, 240, 55);
+  ctx.fillStyle = isBadSample ? "#7c3a1c" : "#d4a155";
+  ctx.beginPath(); ctx.ellipse(120, 138, 58, 31, 0, 0, Math.PI * 2); ctx.fill();
+  if (isBadSample) {
+    ctx.strokeStyle = "#111111"; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(84, 130); ctx.lineTo(110, 151); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(139, 126); ctx.lineTo(160, 151); ctx.stroke();
+  } else {
+    ctx.fillStyle = "#b8853a";
+    [84, 104, 124, 144, 164].forEach(function(x){
+      ctx.beginPath(); ctx.arc(x, 138, 4, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+  ctx.fillStyle = "#111111"; ctx.font = "bold 11px sans-serif";
+  ctx.fillText("STEP " + (stepIdx + 1) + " sample", 8, 228);
+  addPhotoRecord(stepIdx, canvas.toDataURL("image/png"), "demo-product-photo.png", null);
+};
+
+function equipmentCatalogSnapshot() {
+  const snapshot = {};
+  if (typeof EQUIPMENT === "undefined") return snapshot;
+  EQUIPMENT.forEach(function(e) {
+    snapshot[e.id] = {};
+    e.params.forEach(function(p) {
+      snapshot[e.id][p.key] = p.val;
+    });
+  });
+  return snapshot;
+}
+
+function useEquipmentCatalogSnapshot() {
+  STATE.equipment = equipmentCatalogSnapshot();
+  STATE.equipmentHistory = {};
+}
+
+function normalizeEquipmentReadingClient(reading) {
+  const source = reading || {};
+  const values = Object.assign({}, source.values || {});
+  ["rpm","temp","temperature","screw_t","die_t","current","runtime","belt","blade","width","moisture","metal_detect","metalDetect"].forEach(function(key) {
+    if (source[key] !== undefined && values[key] === undefined) values[key] = source[key];
+  });
+  return {
+    equipmentId:String(source.equipmentId || source.equipment_id || source.id || "").trim(),
+    readingAt:source.readingAt || source.reading_at || source.timestamp || auditNowIso(),
+    source:source.source || "unknown",
+    values:values
+  };
+}
+
+function applyEquipmentReading(reading) {
+  const item = normalizeEquipmentReadingClient(reading);
+  if (!item.equipmentId) return false;
+  if (!STATE.equipment[item.equipmentId]) STATE.equipment[item.equipmentId] = {};
+  Object.keys(item.values || {}).forEach(function(key) {
+    const number = Number(item.values[key]);
+    STATE.equipment[item.equipmentId][key] = Number.isFinite(number) ? number : item.values[key];
+  });
+  if (!STATE.equipmentHistory[item.equipmentId]) STATE.equipmentHistory[item.equipmentId] = [];
+  STATE.equipmentHistory[item.equipmentId].push({readingAt:item.readingAt, values:Object.assign({}, STATE.equipment[item.equipmentId]), source:item.source});
+  if (STATE.equipmentHistory[item.equipmentId].length > 120) STATE.equipmentHistory[item.equipmentId].shift();
+  return true;
+}
+
+async function refreshEquipmentFromSource() {
+  const data = await dbRequest("/api/equipment/latest");
+  if (!data) {
+    STATE.equipmentSource = {mode:"offline", sourceConfigured:false, updatedAt:auditNowIso()};
+    return false;
+  }
+  let applied = 0;
+  (data.readings || []).forEach(function(reading) {
+    if (applyEquipmentReading(reading)) applied++;
+  });
+  if (!applied && !data.sourceConfigured && data.source === "local-snapshot") {
+    useEquipmentCatalogSnapshot();
+  }
+  STATE.equipmentSource = {
+    mode:data.source || (applied ? "database" : "local-snapshot"),
+    sourceConfigured:!!data.sourceConfigured,
+    updatedAt:auditNowIso(),
+    count:applied
+  };
+  syncEquipmentCatalogFromState();
+  if (currentPage === "equipment") updateEquipmentLive();
+  return applied > 0;
+}
+
+function syncEquipmentCatalogFromState() {
+  if (typeof EQUIPMENT === "undefined") return;
+  EQUIPMENT.forEach(function(e) {
+    const live = STATE.equipment[e.id]; if (!live) return;
+    let hasWarn = false;
+    e.params.forEach(function(p) {
+      if (live[p.key] !== undefined) {
+        const n = Number(live[p.key]);
+        p.val = Number.isFinite(n) ? +n.toFixed(2) : live[p.key];
+      }
+      const numeric = Number(p.val);
+      const out = Number.isFinite(numeric) && (numeric < p.min || numeric > p.max);
+      p.alert = out;
+      if (out) hasWarn = true;
+    });
+    e.status = hasWarn ? "warn" : "run";
+  });
+}
+
+function equipmentSourceBadge() {
+  const src = STATE.equipmentSource || {};
+  const label = src.sourceConfigured ? "REAL SOURCE" : (src.mode === "database" ? "INGESTED DATA" : "LOCAL SNAPSHOT");
+  const cls = src.sourceConfigured || src.mode === "database" ? "b-ok" : "b-info";
+  return '<div class="badge '+cls+'"><span class="pulse"></span>'+label+'</div>';
+}
+
+function equipmentSparkData(eqId, param) {
+  const history = STATE.equipmentHistory[eqId] || [];
+  const values = history.map(function(item){ return item.values && Number(item.values[param.key]); }).filter(Number.isFinite);
+  if (values.length >= 2) return values.slice(-24);
+  const current = Number(param.val) || 0;
+  return Array.from({length:24}, function(){ return current; });
+}
+
+function equipmentSeries(eqId, key, labels, fallback) {
+  const history = STATE.equipmentHistory[eqId] || [];
+  const values = history.map(function(item){ return item.values && Number(item.values[key]); }).filter(Number.isFinite);
+  if (values.length >= 2) {
+    const sliced = values.slice(-labels.length);
+    while (sliced.length < labels.length) sliced.unshift(sliced[0]);
+    return sliced;
+  }
+  const live = STATE.equipment[eqId] || {};
+  const current = Number(live[key]);
+  return labels.map(function(){ return Number.isFinite(current) ? current : fallback; });
+}
+
+window.startLiveTick = function() {
+  if (STATE.liveTickId) clearInterval(STATE.liveTickId);
+  refreshEquipmentFromSource();
+  STATE.liveTickId = setInterval(function() {
+    refreshEquipmentFromSource();
+  }, 5000);
+};
+
+function equipmentOutOfRangeFindings() {
+  syncEquipmentCatalogFromState();
+  const findings = [];
+  EQUIPMENT.forEach(function(e) {
+    e.params.forEach(function(p) {
+      const value = Number(p.val);
+      if (Number.isFinite(value) && (value < p.min || value > p.max)) {
+        findings.push({equipment:e, param:p, value:value});
+      }
+    });
+  });
+  return findings;
+}
+
+async function saveParameterAuditFinding(finding) {
+  const result = finding.value < finding.param.min ? "LOW" : "HIGH";
+  const confidence = 99;
+  const msg = finding.equipment.id + " " + finding.param.labelEn + " " + finding.value + finding.param.unit + " outside " + finding.param.min + "-" + finding.param.max;
+  STATE.aiEvents.unshift({
+    t:nowHHMM(),
+    engZh:"參數異常偵測",
+    engEn:"Parameter Anomaly",
+    engVi:"Parameter Anomaly",
+    sev:"high",
+    msgZh:msg,
+    msgEn:msg,
+    msgVi:msg,
+    c:confidence,
+    traceable:true,
+    source:"equipment",
+    result:result
+  });
+  if (STATE.aiEvents.length > 25) STATE.aiEvents.pop();
+  await apiSaveAuditRecord({
+    type:"parameter",
+    source:STATE.equipmentSource && STATE.equipmentSource.mode || "equipment",
+    severity:"high",
+    result:result,
+    confidence:confidence,
+    operator:auditOperatorName(),
+    signer:"Pending signature",
+    batchId:sopState.batch,
+    equipmentId:finding.equipment.id,
+    parameters:{
+      key:finding.param.key,
+      label:finding.param.labelEn,
+      value:finding.value,
+      unit:finding.param.unit,
+      min:finding.param.min,
+      max:finding.param.max,
+      equipmentSource:STATE.equipmentSource
+    },
+    payload:{equipment:STATE.equipment[finding.equipment.id] || {}}
+  });
+}
+
+async function runParameterAudit() {
+  await refreshEquipmentFromSource();
+  const findings = equipmentOutOfRangeFindings();
+  for (const finding of findings) await saveParameterAuditFinding(finding);
+  ssPersist();
+  return findings.length;
+}
+
+async function runStepComplianceAudit() {
+  const missing = (sopState.signatures || []).map(function(sig, idx){ return sig ? null : idx; }).filter(function(x){ return x !== null; });
+  const result = missing.length ? "PENDING_SIGNATURES" : "OK";
+  const confidence = 96;
+  await apiSaveAuditRecord({
+    type:"step-compliance",
+    source:"sop-state",
+    severity:missing.length ? "med" : "info",
+    result:result,
+    confidence:confidence,
+    operator:auditOperatorName(),
+    signer:missing.length ? "Pending signature" : auditOperatorName(),
+    batchId:sopState.batch,
+    parameters:{missingStepIndexes:missing, signatures:sopState.signatures, durations:sopState.durations},
+    payload:{sopState:sopState}
+  });
+  STATE.aiEvents.unshift({
+    t:nowHHMM(),
+    engZh:"步驟合規檢查",
+    engEn:"Step Compliance",
+    engVi:"Step Compliance",
+    sev:missing.length ? "med" : "info",
+    msgZh:missing.length ? "尚有 " + missing.length + " 個 SOP 步驟待簽核" : "SOP steps signed and traceable",
+    msgEn:missing.length ? missing.length + " SOP steps still pending signature" : "SOP steps signed and traceable",
+    msgVi:missing.length ? missing.length + " SOP steps still pending signature" : "SOP steps signed and traceable",
+    c:confidence,
+    traceable:true,
+    source:"sop-state",
+    result:result
+  });
+  if (STATE.aiEvents.length > 25) STATE.aiEvents.pop();
+  ssPersist();
+  return missing.length;
+}
+
+window.aiRunAll = async function() {
+  showToast("Running real audit checks...", "info");
+  const paramCount = await runParameterAudit();
+  const missing = await runStepComplianceAudit();
+  showToast("Audit complete: " + paramCount + " parameter finding(s), " + missing + " pending signature(s)", paramCount || missing ? "warn" : "ok");
+  if (currentPage === "ai") navigate("ai");
+};
+
+window.aiRunOne = async function(id, name) {
+  showToast("Running " + name + "...", "info");
+  let count = 0;
+  if (id === "param") count = await runParameterAudit();
+  else if (id === "comp") count = await runStepComplianceAudit();
+  else if (id === "vision") {
+    const allPhotos = Object.keys(STATE.photos).reduce(function(list, key){ return list.concat(STATE.photos[key] || []); }, []);
+    count = allPhotos.filter(function(p){ return p.ai; }).length;
+    showToast(count ? "Vision records already traceable: " + count : "No audited product photo yet", count ? "ok" : "warn");
+  } else {
+    await apiSaveAuditRecord({
+      type:id || "general",
+      source:"manual-run",
+      severity:"info",
+      result:"RECORDED",
+      confidence:90,
+      operator:auditOperatorName(),
+      signer:"Pending signature",
+      batchId:sopState.batch,
+      parameters:{engine:name, equipmentSource:STATE.equipmentSource},
+      payload:{state:persistentPayload()}
+    });
+  }
+  if (id !== "vision") showToast("Done: " + count + " finding(s)", count ? "warn" : "ok");
+  if (currentPage === "ai") navigate("ai");
+};
+
 /* ============================================================================
    BOOT
    ============================================================================ */
 async function bootApp() {
   ssRestore();
   await dbLoadState();
+  STATE.aiEvents = traceableAiEvents(STATE.aiEvents);
+  await dbLoadAuditRecords();
+  await refreshEquipmentFromSource();
   applyI18n();
   syncLoginContextInputs();
   showLoginStep("context");
